@@ -1966,6 +1966,10 @@ export type GetScheduleNotificationsResponses = {
                 userKey: string;
                 devices?: string;
             } | {
+                botToken: string;
+                chatId: string;
+                type: 'telegram';
+            } | {
                 from: string;
                 password: string;
                 smtpHost: string;
@@ -1990,10 +1994,6 @@ export type GetScheduleNotificationsResponses = {
             } | {
                 shoutrrrUrl: string;
                 type: 'custom';
-            } | {
-                type: 'telegram';
-                botToken: string;
-                chatId: string;
             } | {
                 type: 'discord';
                 webhookUrl: string;
@@ -2054,6 +2054,10 @@ export type UpdateScheduleNotificationsResponses = {
                 userKey: string;
                 devices?: string;
             } | {
+                botToken: string;
+                chatId: string;
+                type: 'telegram';
+            } | {
                 from: string;
                 password: string;
                 smtpHost: string;
@@ -2078,10 +2082,6 @@ export type UpdateScheduleNotificationsResponses = {
             } | {
                 shoutrrrUrl: string;
                 type: 'custom';
-            } | {
-                type: 'telegram';
-                botToken: string;
-                chatId: string;
             } | {
                 type: 'discord';
                 webhookUrl: string;
@@ -2131,6 +2131,10 @@ export type ListNotificationDestinationsResponses = {
             userKey: string;
             devices?: string;
         } | {
+            botToken: string;
+            chatId: string;
+            type: 'telegram';
+        } | {
             from: string;
             password: string;
             smtpHost: string;
@@ -2155,10 +2159,6 @@ export type ListNotificationDestinationsResponses = {
         } | {
             shoutrrrUrl: string;
             type: 'custom';
-        } | {
-            type: 'telegram';
-            botToken: string;
-            chatId: string;
         } | {
             type: 'discord';
             webhookUrl: string;
@@ -2192,6 +2192,10 @@ export type CreateNotificationDestinationData = {
             userKey: string;
             devices?: string;
         } | {
+            botToken: string;
+            chatId: string;
+            type: 'telegram';
+        } | {
             from: string;
             password: string;
             smtpHost: string;
@@ -2216,10 +2220,6 @@ export type CreateNotificationDestinationData = {
         } | {
             shoutrrrUrl: string;
             type: 'custom';
-        } | {
-            type: 'telegram';
-            botToken: string;
-            chatId: string;
         } | {
             type: 'discord';
             webhookUrl: string;
@@ -2252,6 +2252,10 @@ export type CreateNotificationDestinationResponses = {
             userKey: string;
             devices?: string;
         } | {
+            botToken: string;
+            chatId: string;
+            type: 'telegram';
+        } | {
             from: string;
             password: string;
             smtpHost: string;
@@ -2276,10 +2280,6 @@ export type CreateNotificationDestinationResponses = {
         } | {
             shoutrrrUrl: string;
             type: 'custom';
-        } | {
-            type: 'telegram';
-            botToken: string;
-            chatId: string;
         } | {
             type: 'discord';
             webhookUrl: string;
@@ -2359,6 +2359,10 @@ export type GetNotificationDestinationResponses = {
             userKey: string;
             devices?: string;
         } | {
+            botToken: string;
+            chatId: string;
+            type: 'telegram';
+        } | {
             from: string;
             password: string;
             smtpHost: string;
@@ -2383,10 +2387,6 @@ export type GetNotificationDestinationResponses = {
         } | {
             shoutrrrUrl: string;
             type: 'custom';
-        } | {
-            type: 'telegram';
-            botToken: string;
-            chatId: string;
         } | {
             type: 'discord';
             webhookUrl: string;
@@ -2420,6 +2420,10 @@ export type UpdateNotificationDestinationData = {
             userKey: string;
             devices?: string;
         } | {
+            botToken: string;
+            chatId: string;
+            type: 'telegram';
+        } | {
             from: string;
             password: string;
             smtpHost: string;
@@ -2444,10 +2448,6 @@ export type UpdateNotificationDestinationData = {
         } | {
             shoutrrrUrl: string;
             type: 'custom';
-        } | {
-            type: 'telegram';
-            botToken: string;
-            chatId: string;
         } | {
             type: 'discord';
             webhookUrl: string;
@@ -2490,6 +2490,10 @@ export type UpdateNotificationDestinationResponses = {
             userKey: string;
             devices?: string;
         } | {
+            botToken: string;
+            chatId: string;
+            type: 'telegram';
+        } | {
             from: string;
             password: string;
             smtpHost: string;
@@ -2514,10 +2518,6 @@ export type UpdateNotificationDestinationResponses = {
         } | {
             shoutrrrUrl: string;
             type: 'custom';
-        } | {
-            type: 'telegram';
-            botToken: string;
-            chatId: string;
         } | {
             type: 'discord';
             webhookUrl: string;

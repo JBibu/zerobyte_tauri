@@ -645,9 +645,7 @@ export const CreateNotificationForm = ({ onSubmit, mode = "create", initialValue
 									<FormControl>
 										<Input {...field} placeholder="-1231234567890" />
 									</FormControl>
-									<FormDescription>
-										Telegram chat ID to send notifications to.
-									</FormDescription>
+									<FormDescription>Telegram chat ID to send notifications to.</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
