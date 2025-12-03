@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `backup_schedule_mirrors_table_schedule_id_repository_id_unique` ON `backup_schedule_mirrors_table` (`schedule_id`,`repository_id`);
