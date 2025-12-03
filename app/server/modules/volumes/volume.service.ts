@@ -8,6 +8,7 @@ import slugify from "slugify";
 import { getCapabilities, parseDockerHost } from "../../core/capabilities";
 import { db } from "../../db/db";
 import { volumesTable } from "../../db/schema";
+import { cryptoUtils } from "../../utils/crypto";
 import { toMessage } from "../../utils/errors";
 import { generateShortId } from "../../utils/id";
 import { getStatFs, type StatFs } from "../../utils/mountinfo";
@@ -18,6 +19,23 @@ import { getVolumePath } from "./helpers";
 import { logger } from "../../utils/logger";
 import { serverEvents } from "../../core/events";
 import type { BackendConfig } from "~/schemas/volumes";
+
+async function encryptSensitiveFields(config: BackendConfig): Promise<BackendConfig> {
+	switch (config.backend) {
+		case "smb":
+			return {
+				...config,
+				password: await cryptoUtils.encrypt(config.password),
+			};
+		case "webdav":
+			return {
+				...config,
+				password: config.password ? await cryptoUtils.encrypt(config.password) : undefined,
+			};
+		default:
+			return config;
+	}
+}
 
 const listVolumes = async () => {
 	const volumes = await db.query.volumesTable.findMany({});
@@ -37,13 +55,14 @@ const createVolume = async (name: string, backendConfig: BackendConfig) => {
 	}
 
 	const shortId = generateShortId();
+	const encryptedConfig = await encryptSensitiveFields(backendConfig);
 
 	const [created] = await db
 		.insert(volumesTable)
 		.values({
 			shortId,
 			name: slug,
-			config: backendConfig,
+			config: encryptedConfig,
 			type: backendConfig.backend,
 		})
 		.returning();
@@ -175,11 +194,13 @@ const updateVolume = async (name: string, volumeData: UpdateVolumeBody) => {
 		await backend.unmount();
 	}
 
+	const encryptedConfig = volumeData.config ? await encryptSensitiveFields(volumeData.config) : undefined;
+
 	const [updated] = await db
 		.update(volumesTable)
 		.set({
 			name: newName,
-			config: volumeData.config,
+			config: encryptedConfig,
 			type: volumeData.config?.backend,
 			autoRemount: volumeData.autoRemount,
 			updatedAt: Date.now(),

@@ -5,6 +5,10 @@ const algorithm = "aes-256-gcm" as const;
 const keyLength = 32;
 const encryptionPrefix = "encv1";
 
+const isEncrypted = (val?: string): boolean => {
+	return typeof val === "string" && val.startsWith(encryptionPrefix);
+};
+
 /**
  * Given a string, encrypts it using a randomly generated salt
  */
@@ -13,7 +17,7 @@ const encrypt = async (data: string) => {
 		return data;
 	}
 
-	if (data.startsWith(encryptionPrefix)) {
+	if (isEncrypted(data)) {
 		return data;
 	}
 
@@ -34,6 +38,10 @@ const encrypt = async (data: string) => {
  * Given an encrypted string, decrypts it using the salt stored in the string
  */
 const decrypt = async (encryptedData: string) => {
+	if (!isEncrypted(encryptedData)) {
+		return encryptedData;
+	}
+
 	const secret = await Bun.file(RESTIC_PASS_FILE).text();
 
 	const parts = encryptedData.split(":").slice(1); // Remove prefix
@@ -58,4 +66,5 @@ const decrypt = async (encryptedData: string) => {
 export const cryptoUtils = {
 	encrypt,
 	decrypt,
+	isEncrypted,
 };
