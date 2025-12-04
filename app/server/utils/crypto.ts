@@ -5,12 +5,16 @@ const algorithm = "aes-256-gcm" as const;
 const keyLength = 32;
 const encryptionPrefix = "encv1";
 
+/**
+ * Checks if a given string is encrypted by looking for the encryption prefix.
+ */
 const isEncrypted = (val?: string): boolean => {
 	return typeof val === "string" && val.startsWith(encryptionPrefix);
 };
 
 /**
- * Given a string, encrypts it using a randomly generated salt
+ * Given a string, encrypts it using a randomly generated salt.
+ * Returns the input unchanged if it's empty or already encrypted.
  */
 const encrypt = async (data: string) => {
 	if (!data) {
@@ -35,7 +39,8 @@ const encrypt = async (data: string) => {
 };
 
 /**
- * Given an encrypted string, decrypts it using the salt stored in the string
+ * Given an encrypted string, decrypts it using the salt stored in the string.
+ * Returns the input unchanged if it's not encrypted (for backward compatibility).
  */
 const decrypt = async (encryptedData: string) => {
 	if (!isEncrypted(encryptedData)) {
