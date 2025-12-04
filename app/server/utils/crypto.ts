@@ -47,7 +47,7 @@ const decrypt = async (encryptedData: string) => {
 		return encryptedData;
 	}
 
-	const secret = await Bun.file(RESTIC_PASS_FILE).text();
+	const secret = (await Bun.file(RESTIC_PASS_FILE).text()).trim();
 
 	const parts = encryptedData.split(":").slice(1); // Remove prefix
 	const saltHex = parts.shift() as string;
