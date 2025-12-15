@@ -639,13 +639,36 @@ const getMirrorCompatibility = async (scheduleId: number) => {
 };
 
 const reorderSchedules = async (scheduleIds: number[]) => {
-	// Update each schedule's sortOrder based on its position in the array
-	for (let i = 0; i < scheduleIds.length; i++) {
-		await db
-			.update(backupSchedulesTable)
-			.set({ sortOrder: i, updatedAt: Date.now() })
-			.where(eq(backupSchedulesTable.id, scheduleIds[i]));
+	// Validate input - check for duplicates
+	const uniqueIds = new Set(scheduleIds);
+	if (uniqueIds.size !== scheduleIds.length) {
+		throw new BadRequestError("Duplicate schedule IDs in reorder request");
 	}
+
+	// Verify all schedules exist
+	const existingSchedules = await db.query.backupSchedulesTable.findMany({
+		columns: { id: true },
+	});
+	const existingIds = new Set(existingSchedules.map((s) => s.id));
+
+	for (const id of scheduleIds) {
+		if (!existingIds.has(id)) {
+			throw new NotFoundError(`Backup schedule with ID ${id} not found`);
+		}
+	}
+
+	// Batch update in a transaction
+	await db.transaction(async (tx) => {
+		const now = Date.now();
+		await Promise.all(
+			scheduleIds.map((scheduleId, index) =>
+				tx
+					.update(backupSchedulesTable)
+					.set({ sortOrder: index, updatedAt: now })
+					.where(eq(backupSchedulesTable.id, scheduleId)),
+			),
+		);
+	});
 };
 
 export const backupsService = {
