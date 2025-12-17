@@ -3,8 +3,7 @@ import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
 import { logger as honoLogger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { cors } from "hono/cors";
-import { rateLimit } from "hono-rate-limiter";
+import { rateLimiter } from "hono-rate-limiter";
 import { openAPIRouteHandler } from "hono-openapi";
 import { runDbMigrations } from "./db/db";
 import { authController } from "./modules/auth/auth.controller";
@@ -46,19 +45,14 @@ const app = new Hono()
 	.use(honoLogger())
 	.use(secureHeaders())
 	.use(
-		cors({
-			origin: [config.APP_URL || "http://localhost:3000"],
-			credentials: true,
-		}),
-	)
-	.use(
-		rateLimit({
-			windowMs: 15 * 60 * 1000, // 15 minutes
-			limit: 100, // limit each IP to 100 requests per windowMs
+		rateLimiter({
+			windowMs: 15 * 60 * 1000,
+			limit: 100,
+			keyGenerator: (c) => c.req.header("x-forwarded-for") ?? "",
 		}),
 	)
 	.get("healthcheck", (c) => c.json({ status: "ok" }))
-	.route("/api/v1/auth", authController.basePath("/api/v1"))
+	.route("/api/v1/auth", authController)
 	.use("/api/v1/volumes/*", requireAuth)
 	.use("/api/v1/repositories/*", requireAuth)
 	.use("/api/v1/backups/*", requireAuth)

@@ -1,5 +1,5 @@
 import { validator } from "hono-openapi";
-
+import { rateLimiter } from "hono-rate-limiter";
 import { Hono } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import {
@@ -31,6 +31,13 @@ const COOKIE_OPTIONS = {
 };
 
 export const authController = new Hono()
+	.use(
+		rateLimiter({
+			windowMs: 15 * 60 * 1000,
+			limit: 5,
+			keyGenerator: (c) => c.req.header("x-forwarded-for") ?? "",
+		}),
+	)
 	.post("/register", registerDto, validator("json", registerBodySchema), async (c) => {
 		const body = c.req.valid("json");
 
