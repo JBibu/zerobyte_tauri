@@ -12,6 +12,7 @@ import { BackupExecutionJob } from "../../jobs/backup-execution";
 import { CleanupSessionsJob } from "../../jobs/cleanup-sessions";
 import { repositoriesService } from "../repositories/repositories.service";
 import { notificationsService } from "../notifications/notifications.service";
+import { VolumeAutoRemountJob } from "~/server/jobs/auto-remount";
 
 const ensureLatestConfigurationSchema = async () => {
 	const volumes = await db.query.volumesTable.findMany({});
@@ -67,4 +68,5 @@ export const startup = async () => {
 	Scheduler.build(RepositoryHealthCheckJob).schedule("50 12 * * *");
 	Scheduler.build(BackupExecutionJob).schedule("* * * * *");
 	Scheduler.build(CleanupSessionsJob).schedule("0 0 * * *");
+	Scheduler.build(VolumeAutoRemountJob).schedule("*/5 * * * *");
 };
