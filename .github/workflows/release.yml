@@ -8,7 +8,7 @@ on:
       - "v*.*.*-alpha.*"
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   security-events: write
 
