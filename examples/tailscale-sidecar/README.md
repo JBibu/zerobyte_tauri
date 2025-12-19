@@ -86,7 +86,7 @@ docker exec zerobyte-tailscale tailscale ip -4
 ```
 
 To confirm received routes when `--accept-routes` is used in kernel mode:
-(Missing routers could be due to ACLs or because `--accept-routes` is not set or not supported in userspace mode)
+(Missing routes could be due to ACLs or because `--accept-routes` is not set or not supported in userspace mode)
 ```bash
 docker exec zerobyte-tailscale ip route
 docker exec zerobyte-tailscale ip route show table 52
