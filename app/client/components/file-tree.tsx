@@ -459,7 +459,7 @@ const File = memo(({ file, onFileSelect, selected, withCheckbox, checked, onChec
 				<Checkbox checked={checked} onCheckedChange={handleCheckboxChange} onClick={(e) => e.stopPropagation()} />
 			)}
 			<span className="truncate">{name}</span>
-			{size != null && (
+			{typeof size === "number" && (
 				<span className="ml-auto shrink-0 text-xs text-muted-foreground">
 					<ByteSize bytes={size} />
 				</span>
@@ -532,7 +532,7 @@ function buildFileList(files: FileEntry[], foldersOnly = false): Node[] {
 				name,
 				fullPath: file.path,
 				depth,
-				...(isFile && file.size != null ? { size: file.size } : {}),
+				size: file.size,
 			});
 		}
 	}
