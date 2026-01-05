@@ -22,9 +22,7 @@ runDbMigrations();
 await retagSnapshots();
 await validateRequiredMigrations(REQUIRED_MIGRATIONS);
 
-startup();
-
-logger.info(`Server is running at http://localhost:${config.port}`);
+await startup();
 
 export type AppType = typeof app;
 
