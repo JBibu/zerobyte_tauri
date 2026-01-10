@@ -846,7 +846,38 @@ const copy = async (
 		args.push("latest");
 	}
 
+	// Apply bandwidth limits from both source and destination configs
+	// First apply destination config limits (for the main operation)
 	addCommonArgs(args, env, destConfig);
+
+	// Then explicitly apply source-side bandwidth limits for the from-repo operation
+	if (sourceConfig.uploadLimit?.enabled) {
+		const sourceUploadLimit = formatBandwidthLimit(sourceConfig.uploadLimit);
+		if (sourceUploadLimit) {
+			if (sourceConfig.backend === "rclone") {
+				// For rclone source backends, use rclone.bwlimit for the from-repo
+				args.push("-o", `rclone.from.bwlimit=${sourceUploadLimit}`);
+			} else {
+				// For restic source backends, the download from source becomes an upload limit
+				args.push("--limit-upload", sourceUploadLimit);
+			}
+		}
+	}
+
+	if (sourceConfig.downloadLimit?.enabled) {
+		const sourceDownloadLimit = formatBandwidthLimit(sourceConfig.downloadLimit);
+		if (sourceDownloadLimit) {
+			if (sourceConfig.backend === "rclone") {
+				// For rclone source backends
+				const sourceUploadLimit = sourceConfig.uploadLimit?.enabled ? formatBandwidthLimit(sourceConfig.uploadLimit) : "";
+				const effectiveLimit = sourceUploadLimit && parseInt(sourceUploadLimit) < parseInt(sourceDownloadLimit) ? sourceUploadLimit : sourceDownloadLimit;
+				args.push("-o", `rclone.from.bwlimit=${effectiveLimit}`);
+			} else {
+				// For restic source backends, this affects reading from the source repo
+				args.push("--limit-download", sourceDownloadLimit);
+			}
+		}
+	}
 
 	if (sourceConfig.backend === "sftp" && sourceEnv._SFTP_SSH_ARGS) {
 		args.push("-o", `sftp.args=${sourceEnv._SFTP_SSH_ARGS}`);
@@ -874,29 +905,33 @@ const copy = async (
 	};
 };
 
-// Helper function to convert bandwidth limit to restic format
+// Helper function to convert bandwidth limit to restic/rclone format
 const formatBandwidthLimit = (limit: BandwidthLimit): string => {
 	if (!limit.enabled || limit.value <= 0) {
 		return "";
 	}
 
-	// Convert to bytes per second for restic
-	let bytesPerSecond: number;
+	// Convert to KiB/s for restic compatibility, or use suffixed format for rclone
+	let kibibytesPerSecond: number;
 	switch (limit.unit) {
-		case "KB/s":
-			bytesPerSecond = limit.value * 1024;
+		case "Kbps":
+			// Kilobits per second to KiB/s: divide by 8 (bits to bytes), then by 1024 (bytes to KiB)
+			kibibytesPerSecond = limit.value / (8 * 1024);
 			break;
-		case "MB/s":
-			bytesPerSecond = limit.value * 1024 * 1024;
+		case "Mbps":
+			// Megabits per second to KiB/s: multiply by 1000000 (Mb to bits), divide by 8 (bits to bytes), then by 1024 (bytes to KiB)
+			kibibytesPerSecond = (limit.value * 1000000) / (8 * 1024);
 			break;
-		case "GB/s":
-			bytesPerSecond = limit.value * 1024 * 1024 * 1024;
+		case "Gbps":
+			// Gigabits per second to KiB/s: multiply by 1000000000 (Gb to bits), divide by 8 (bits to bytes), then by 1024 (bytes to KiB)
+			kibibytesPerSecond = (limit.value * 1000000000) / (8 * 1024);
 			break;
 		default:
 			return "";
 	}
 
-	return `${Math.floor(bytesPerSecond)}`;
+	// Return as integer KiB/s for restic
+	return `${Math.floor(kibibytesPerSecond)}`;
 };
 
 export const addCommonArgs = (args: string[], env: Record<string, string>, config?: RepositoryConfig) => {
@@ -968,7 +1003,7 @@ export const restic = {
 
 // Helper function to clean up temporary files
 const cleanupTemporaryKeys = async (env: Record<string, string>) => {
-	const keysToClean = ['_SFTP_KEY_PATH', '_SFTP_KNOWN_HOSTS_PATH', 'RESTIC_CACERT', 'GOOGLE_APPLICATION_CREDENTIALS'];
+	const keysToClean = ["_SFTP_KEY_PATH", "_SFTP_KNOWN_HOSTS_PATH", "RESTIC_CACERT", "GOOGLE_APPLICATION_CREDENTIALS"];
 
 	for (const key of keysToClean) {
 		if (env[key]) {

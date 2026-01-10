@@ -10,7 +10,13 @@ import {
 import { Input } from "../../../../components/ui/input";
 import { Textarea } from "../../../../components/ui/textarea";
 import { Checkbox } from "../../../../components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from "../../../../components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../../../../components/ui/collapsible";
 import type { RepositoryFormValues } from "../create-repository-form";
@@ -103,7 +109,7 @@ export const AdvancedForm = ({ form }: Props) => {
 											name="uploadLimit.unit"
 											render={({ field }) => (
 												<FormItem className="w-24">
-													<Select onValueChange={field.onChange} defaultValue={field.value || "MB/s"} value={field.value || "MB/s"}>
+													<Select onValueChange={field.onChange} defaultValue={field.value || "Mbps"} value={field.value || "Mbps"}>
 														<FormControl>
 															<SelectTrigger className="text-xs">
 																<SelectValue />
@@ -186,7 +192,7 @@ export const AdvancedForm = ({ form }: Props) => {
 											name="downloadLimit.unit"
 											render={({ field }) => (
 												<FormItem className="w-24">
-													<Select onValueChange={field.onChange} defaultValue={field.value || "MB/s"} value={field.value || "MB/s"}>
+													<Select onValueChange={field.onChange} defaultValue={field.value || "Mbps"} value={field.value || "Mbps"}>
 														<FormControl>
 															<SelectTrigger className="text-xs">
 																<SelectValue />
