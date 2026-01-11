@@ -157,10 +157,10 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
 					<Label>Username</Label>
 					<Input value={loaderData.user?.username || ""} disabled className="max-w-md" />
 				</div>
-				<div className="space-y-2">
-					<Label>Email</Label>
-					<Input value={loaderData.user?.email || ""} disabled className="max-w-md" />
-				</div>
+				{/* <div className="space-y-2"> */}
+				{/* 	<Label>Email</Label> */}
+				{/* 	<Input value={loaderData.user?.email || ""} disabled className="max-w-md" /> */}
+				{/* </div> */}
 			</CardContent>
 
 			<div className="border-t border-border/50 bg-card-header p-6">
