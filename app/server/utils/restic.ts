@@ -10,7 +10,7 @@ import { logger } from "./logger";
 import { cryptoUtils } from "./crypto";
 import type { RetentionPolicy } from "../modules/backups/backups.dto";
 import { safeSpawn } from "./spawn";
-import type { CompressionMode, RepositoryConfig, OverwriteMode } from "~/schemas/restic";
+import type { CompressionMode, RepositoryConfig, OverwriteMode, BandwidthLimit } from "~/schemas/restic";
 import { ResticError } from "./errors";
 
 const backupOutputSchema = type({
@@ -229,7 +229,7 @@ const init = async (config: RepositoryConfig) => {
 	const env = await buildEnv(config);
 
 	const args = ["init", "--repo", repoUrl];
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -321,7 +321,7 @@ const backup = async (
 		}
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const logData = throttle((data: string) => {
 		logger.info(data.trim());
@@ -453,7 +453,7 @@ const restore = async (
 		}
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	logger.debug(`Executing: restic ${args.join(" ")}`);
 	const res = await safeSpawn({ command: "restic", args, env });
@@ -516,7 +516,7 @@ const snapshots = async (config: RepositoryConfig, options: { tags?: string[] } 
 		}
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -565,7 +565,7 @@ const forget = async (config: RepositoryConfig, options: RetentionPolicy, extra:
 	}
 
 	args.push("--prune");
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -587,7 +587,7 @@ const deleteSnapshots = async (config: RepositoryConfig, snapshotIds: string[]) 
 	}
 
 	const args: string[] = ["--repo", repoUrl, "forget", ...snapshotIds, "--prune"];
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -636,7 +636,7 @@ const tagSnapshots = async (
 		}
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -686,7 +686,7 @@ const ls = async (config: RepositoryConfig, snapshotId: string, path?: string) =
 		args.push(path);
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -737,7 +737,7 @@ const unlock = async (config: RepositoryConfig) => {
 	const env = await buildEnv(config);
 
 	const args = ["unlock", "--repo", repoUrl, "--remove-all"];
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -761,7 +761,7 @@ const check = async (config: RepositoryConfig, options?: { readData?: boolean })
 		args.push("--read-data");
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -794,7 +794,7 @@ const repairIndex = async (config: RepositoryConfig) => {
 	const env = await buildEnv(config);
 
 	const args = ["repair", "index", "--repo", repoUrl];
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, config);
 
 	const res = await safeSpawn({ command: "restic", args, env });
 	await cleanupTemporaryKeys(env);
@@ -846,10 +846,18 @@ const copy = async (
 		args.push("latest");
 	}
 
-	addCommonArgs(args, env);
+	addCommonArgs(args, env, destConfig, { skipBandwidth: true });
 
-	if (sourceConfig.backend === "sftp" && sourceEnv._SFTP_SSH_ARGS) {
-		args.push("-o", `sftp.args=${sourceEnv._SFTP_SSH_ARGS}`);
+	const sourceDownloadLimit = formatBandwidthLimit(sourceConfig.downloadLimit);
+	const destUploadLimit = formatBandwidthLimit(destConfig.uploadLimit);
+
+	if (sourceDownloadLimit) {
+		args.push("--limit-download", sourceDownloadLimit);
+	}
+
+	// Apply upload limit to destination for all backends
+	if (destUploadLimit) {
+		args.push("--limit-upload", destUploadLimit);
 	}
 
 	logger.info(`Copying snapshots from ${sourceRepoUrl} to ${destRepoUrl}...`);
@@ -874,29 +882,38 @@ const copy = async (
 	};
 };
 
-export const cleanupTemporaryKeys = async (env: Record<string, string>) => {
-	if (env._SFTP_KEY_PATH) {
-		await fs.unlink(env._SFTP_KEY_PATH).catch(() => {});
+const formatBandwidthLimit = (limit?: BandwidthLimit): string => {
+	if (!limit || !limit.enabled || limit.value <= 0) {
+		return "";
 	}
 
-	if (env._SFTP_KNOWN_HOSTS_PATH) {
-		await fs.unlink(env._SFTP_KNOWN_HOSTS_PATH).catch(() => {});
+	let kibibytesPerSecond: number;
+	switch (limit.unit) {
+		case "Kbps":
+			// Kilobits per second to KiB/s: kilobits→bits→bytes→KiB
+			kibibytesPerSecond = (limit.value * 1000) / 8 / 1024;
+			break;
+		case "Mbps":
+			// Megabits per second to KiB/s: multiply by 1000000 (Mb to bits), divide by 8 (bits to bytes), then by 1024 (bytes to KiB)
+			kibibytesPerSecond = (limit.value * 1000000) / (8 * 1024);
+			break;
+		case "Gbps":
+			// Gigabits per second to KiB/s: multiply by 1000000000 (Gb to bits), divide by 8 (bits to bytes), then by 1024 (bytes to KiB)
+			kibibytesPerSecond = (limit.value * 1000000000) / (8 * 1024);
+			break;
+		default:
+			return "";
 	}
 
-	if (env.RESTIC_PASSWORD_FILE && env.RESTIC_PASSWORD_FILE !== RESTIC_PASS_FILE) {
-		await fs.unlink(env.RESTIC_PASSWORD_FILE).catch(() => {});
-	}
-
-	if (env.GOOGLE_APPLICATION_CREDENTIALS) {
-		await fs.unlink(env.GOOGLE_APPLICATION_CREDENTIALS).catch(() => {});
-	}
-
-	if (env.RESTIC_CACERT) {
-		await fs.unlink(env.RESTIC_CACERT).catch(() => {});
-	}
+	return `${Math.floor(kibibytesPerSecond)}`;
 };
 
-export const addCommonArgs = (args: string[], env: Record<string, string>) => {
+export const addCommonArgs = (
+	args: string[],
+	env: Record<string, string>,
+	config?: RepositoryConfig,
+	options?: { skipBandwidth?: boolean },
+) => {
 	args.push("--json");
 
 	if (env._SFTP_SSH_ARGS) {
@@ -909,6 +926,18 @@ export const addCommonArgs = (args: string[], env: Record<string, string>) => {
 
 	if (env.RESTIC_CACERT) {
 		args.push("--cacert", env.RESTIC_CACERT);
+	}
+
+	if (config && !options?.skipBandwidth) {
+		const uploadLimit = formatBandwidthLimit(config.uploadLimit);
+		if (uploadLimit) {
+			args.push("--limit-upload", uploadLimit);
+		}
+
+		const downloadLimit = formatBandwidthLimit(config.downloadLimit);
+		if (downloadLimit) {
+			args.push("--limit-download", downloadLimit);
+		}
 	}
 };
 
@@ -927,4 +956,19 @@ export const restic = {
 	check,
 	repairIndex,
 	copy,
+};
+
+export const cleanupTemporaryKeys = async (env: Record<string, string>) => {
+	const keysToClean = ["_SFTP_KEY_PATH", "_SFTP_KNOWN_HOSTS_PATH", "RESTIC_CACERT", "GOOGLE_APPLICATION_CREDENTIALS"];
+
+	for (const key of keysToClean) {
+		if (env[key]) {
+			await fs.unlink(env[key]).catch(() => {});
+		}
+	}
+
+	// Clean up custom password files
+	if (env.RESTIC_PASSWORD_FILE && env.RESTIC_PASSWORD_FILE !== RESTIC_PASS_FILE) {
+		await fs.unlink(env.RESTIC_PASSWORD_FILE).catch(() => {});
+	}
 };

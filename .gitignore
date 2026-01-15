@@ -31,3 +31,5 @@ node_modules/
 
 playwright/.auth
 playwright/temp
+
+.idea/
