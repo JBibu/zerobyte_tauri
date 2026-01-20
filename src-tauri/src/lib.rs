@@ -239,6 +239,11 @@ pub fn run() {
                 backend_port: state.backend_port,
             };
 
+            // Open devtools to debug loading issues
+            if let Some(window) = app.get_webview_window("main") {
+                window.open_devtools();
+            }
+
             // Start the sidecar and navigate to server
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = start_sidecar(&app_handle, &state_clone).await {
