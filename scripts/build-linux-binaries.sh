@@ -45,6 +45,7 @@ cp -r app/drizzle/* "$OUTPUT_DIR/assets/migrations/"
 
 # Copy client assets for SSR hydration
 echo "Copying client assets..."
+mkdir -p "$OUTPUT_DIR/dist"
 cp -r dist/client "$OUTPUT_DIR/dist/"
 
 # Verify the output file exists
