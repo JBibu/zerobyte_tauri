@@ -239,10 +239,20 @@ pub fn run() {
                 backend_port: state.backend_port,
             };
 
-            // Start the sidecar in a background task
+            // Start the sidecar and navigate to server
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = start_sidecar(&app_handle, &state_clone).await {
                     error!("Failed to start sidecar: {}", e);
+                    return;
+                }
+
+                // Navigate to the SSR server instead of using static assets
+                if let Some(window) = app_handle.get_webview_window("main") {
+                    let url = format!("http://localhost:{}/", state_clone.backend_port);
+                    info!("Navigating to SSR server at {}", url);
+                    if let Err(e) = window.navigate(url.parse().unwrap()) {
+                        error!("Failed to navigate to server: {}", e);
+                    }
                 }
             });
 

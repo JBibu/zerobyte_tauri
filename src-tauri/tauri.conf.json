@@ -7,7 +7,7 @@
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:4096",
     "beforeBuildCommand": "bun run build",
-    "frontendDist": "../dist/client"
+    "frontendDist": "assets"
   },
   "app": {
     "windows": [
