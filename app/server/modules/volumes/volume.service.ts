@@ -323,7 +323,8 @@ const listFiles = async (name: string, subPath?: string) => {
 		const files = await Promise.all(
 			entries.map(async (entry) => {
 				const fullPath = path.join(normalizedPath, entry.name);
-				const relativePath = path.relative(volumePath, fullPath);
+				// Normalize to forward slashes for consistent API response
+				const relativePath = path.relative(volumePath, fullPath).replace(/\\/g, "/");
 
 				try {
 					const stats = await fs.stat(fullPath);
