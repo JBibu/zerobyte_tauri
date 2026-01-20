@@ -3,8 +3,8 @@
 
 param(
     [string]$OutputDir = "src-tauri/binaries",
-    [string]$ResticVersion = "0.18.0",
-    [string]$RcloneVersion = "1.69.2",
+    [string]$ResticVersion = "0.18.1",
+    [string]$RcloneVersion = "1.72.1",
     [string]$ShoutrrrVersion = "0.13.1"
 )
 
@@ -100,12 +100,12 @@ $rcloneSuccess = Download-AndExtract `
     -ExeName "rclone.exe" `
     -OutputName "rclone-$TauriSuffix.exe"
 
-# Download Shoutrrr
-$shoutrrrUrl = "https://github.com/containrrr/shoutrrr/releases/download/v$ShoutrrrVersion/shoutrrr_${ShoutrrrVersion}_windows_amd64.tar.gz"
+# Download Shoutrrr (using nicholas-fedor fork which has newer releases)
+$shoutrrrUrl = "https://github.com/nicholas-fedor/shoutrrr/releases/download/v$ShoutrrrVersion/shoutrrr_windows_amd64_${ShoutrrrVersion}.zip"
 $shoutrrrSuccess = Download-AndExtract `
     -Name "Shoutrrr" `
     -Url $shoutrrrUrl `
-    -ZipName "shoutrrr.tar.gz" `
+    -ZipName "shoutrrr.zip" `
     -ExeName "shoutrrr.exe" `
     -OutputName "shoutrrr-$TauriSuffix.exe"
 
