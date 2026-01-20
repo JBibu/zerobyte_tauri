@@ -93,7 +93,7 @@ pub async fn install_service(app: tauri::AppHandle) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
-        use std::path::PathBuf;
+        use tauri::Manager;
 
         // Get the path to the service executable
         let exe_dir = app
@@ -237,7 +237,6 @@ fn run_elevated(command: &str) -> Result<(), String> {
     use std::ffi::OsStr;
     use std::iter::once;
     use std::os::windows::ffi::OsStrExt;
-    use std::ptr::null_mut;
 
     use windows::core::PCWSTR;
     use windows::Win32::UI::Shell::ShellExecuteW;
