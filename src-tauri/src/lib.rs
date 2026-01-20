@@ -107,17 +107,24 @@ pub async fn start_sidecar(
         return Ok(());
     }
 
-    // In dev mode, the Vite dev server handles the backend on port 4096
-    // Check if it's already running - give it more time since dev server initialization can be slow
+    // In dev mode only, check if the Vite dev server is already running
+    #[cfg(debug_assertions)]
     if wait_for_server(4096, 30).await {
         info!("Development server already running on port 4096, skipping sidecar");
         return Ok(());
     }
 
+    // In release mode, quick check if server is already running (e.g., from previous instance)
+    #[cfg(not(debug_assertions))]
+    if wait_for_server(4096, 2).await {
+        info!("Server already running on port 4096, skipping sidecar");
+        return Ok(());
+    }
+
     let shell = app.shell();
 
-    // Get the sidecar command
-    let sidecar_command = shell.sidecar("binaries/zerobyte-server")?;
+    // Get the sidecar command - use just the binary name, not the path
+    let sidecar_command = shell.sidecar("zerobyte-server")?;
 
     info!("Starting zerobyte-server sidecar on port 4096...");
 
@@ -239,7 +246,8 @@ pub fn run() {
                 backend_port: state.backend_port,
             };
 
-            // Open devtools to debug loading issues
+            // Open devtools in debug mode only
+            #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {
                 window.open_devtools();
             }

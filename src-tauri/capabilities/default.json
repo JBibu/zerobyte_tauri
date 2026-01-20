@@ -7,7 +7,15 @@
     "core:default",
     "shell:allow-open",
     "shell:allow-execute",
-    "shell:allow-spawn",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        { "name": "binaries/zerobyte-server", "sidecar": true },
+        { "name": "binaries/restic", "sidecar": true },
+        { "name": "binaries/rclone", "sidecar": true },
+        { "name": "binaries/shoutrrr", "sidecar": true }
+      ]
+    },
     "shell:allow-stdin-write",
     "shell:allow-kill",
     "process:default"
