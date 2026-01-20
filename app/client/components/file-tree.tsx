@@ -532,6 +532,32 @@ interface FolderNode extends BaseNode {
 	kind: "folder";
 }
 
+// Check if a path is a filesystem root (/ on Unix, C:\ on Windows)
+function isFilesystemRoot(path: string): boolean {
+	// Unix root
+	if (path === "/") return true;
+	// Windows drive root (e.g., C:\, D:\)
+	if (/^[A-Za-z]:[/\\]?$/.test(path)) return true;
+	return false;
+}
+
+// Get parent path, handling both Unix and Windows paths
+function getParentPath(path: string): string {
+	// Handle Windows drive roots (C:\, D:\)
+	if (/^[A-Za-z]:[/\\]?$/.test(path)) return "";
+	// Handle Unix root
+	if (path === "/") return "";
+
+	const lastSep = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
+	if (lastSep <= 0) return "/";
+
+	// Check if parent is a Windows drive root
+	const parent = path.slice(0, lastSep);
+	if (/^[A-Za-z]:$/.test(parent)) return `${parent}\\`;
+
+	return parent || "/";
+}
+
 function buildFileList(files: FileEntry[], foldersOnly = false): Node[] {
 	const fileMap = new Map<string, Node>();
 
@@ -540,9 +566,12 @@ function buildFileList(files: FileEntry[], foldersOnly = false): Node[] {
 			continue;
 		}
 
-		const segments = file.path.split("/").filter((segment) => segment);
-		const depth = segments.length - 1;
-		const name = segments[segments.length - 1];
+		// Split path using both / and \ as separators
+		const segments = file.path.split(/[/\\]/).filter((segment) => segment);
+
+		// For root paths like C:\ or /, depth is 0
+		const depth = isFilesystemRoot(file.path) ? 0 : Math.max(0, segments.length - 1);
+		const name = isFilesystemRoot(file.path) ? file.path : segments[segments.length - 1] || file.path;
 
 		if (!fileMap.has(file.path)) {
 			const isFile = file.type === "file";
@@ -571,9 +600,10 @@ function sortFileList(nodeList: Node[]): Node[] {
 	for (const node of nodeList) {
 		nodeMap.set(node.fullPath, node);
 
-		const parentPath = node.fullPath.slice(0, node.fullPath.lastIndexOf("/")) || "/";
+		const parentPath = getParentPath(node.fullPath);
 
-		if (parentPath !== "/") {
+		// Only add to children map if not a root item
+		if (parentPath) {
 			if (!childrenMap.has(parentPath)) {
 				childrenMap.set(parentPath, []);
 			}
@@ -603,10 +633,9 @@ function sortFileList(nodeList: Node[]): Node[] {
 		}
 	};
 
-	// Start with root level items
+	// Start with root level items (items with no parent or filesystem roots)
 	const rootItems = nodeList.filter((node) => {
-		const parentPath = node.fullPath.slice(0, node.fullPath.lastIndexOf("/")) || "/";
-		return parentPath === "/";
+		return isFilesystemRoot(node.fullPath) || getParentPath(node.fullPath) === "";
 	});
 
 	for (const item of rootItems) {

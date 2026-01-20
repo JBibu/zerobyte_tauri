@@ -17,10 +17,11 @@ type UseFileBrowserOptions = {
 	prefetchFolder?: (path: string) => void;
 	pathTransform?: PathTransformFns;
 	rootPath?: string;
+	rootEntries?: FileEntry[];
 };
 
 export const useFileBrowser = (props: UseFileBrowserOptions) => {
-	const { initialData, isLoading, fetchFolder, prefetchFolder, pathTransform, rootPath = "/" } = props;
+	const { initialData, isLoading, fetchFolder, prefetchFolder, pathTransform, rootPath = "/", rootEntries } = props;
 	const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 	const [fetchedFolders, setFetchedFolders] = useState<Set<string>>(new Set([rootPath]));
 	const [loadingFolders, setLoadingFolders] = useState<Set<string>>(new Set());
@@ -57,7 +58,16 @@ export const useFileBrowser = (props: UseFileBrowserOptions) => {
 		}
 	}, [initialData, stripPath, rootPath]);
 
-	const fileArray = useMemo(() => Array.from(allFiles.values()), [allFiles]);
+	const fileArray = useMemo(() => {
+		const files = Array.from(allFiles.values());
+		// If rootEntries provided, add them as top-level items (but avoid duplicates)
+		if (rootEntries && rootEntries.length > 0) {
+			const existingPaths = new Set(files.map((f) => f.path));
+			const uniqueRoots = rootEntries.filter((r) => !existingPaths.has(r.path));
+			return [...uniqueRoots, ...files];
+		}
+		return files;
+	}, [allFiles, rootEntries]);
 
 	const handleFolderExpand = useCallback(
 		async (folderPath: string) => {

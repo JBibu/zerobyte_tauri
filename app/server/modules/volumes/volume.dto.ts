@@ -315,6 +315,30 @@ export const browseFilesystemResponse = type({
 });
 export type BrowseFilesystemDto = typeof browseFilesystemResponse.infer;
 
+/**
+ * Get filesystem roots
+ */
+export const filesystemRootsResponse = type({
+	roots: "string[]",
+});
+export type FilesystemRootsDto = typeof filesystemRootsResponse.infer;
+
+export const filesystemRootsDto = describeRoute({
+	description: "Get filesystem root paths (drive letters on Windows, / on Unix)",
+	operationId: "getFilesystemRoots",
+	tags: ["Volumes"],
+	responses: {
+		200: {
+			description: "List of filesystem roots",
+			content: {
+				"application/json": {
+					schema: resolver(filesystemRootsResponse),
+				},
+			},
+		},
+	},
+});
+
 export const browseFilesystemDto = describeRoute({
 	description: "Browse directories on the host filesystem",
 	operationId: "browseFilesystem",

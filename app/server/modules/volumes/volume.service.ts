@@ -1,6 +1,8 @@
+import { exec } from "node:child_process";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { promisify } from "node:util";
 import { and, eq, ne } from "drizzle-orm";
 import { ConflictError, InternalServerError, NotFoundError } from "http-errors-enhanced";
 import slugify from "slugify";
@@ -358,6 +360,31 @@ const listFiles = async (name: string, subPath?: string) => {
 	}
 };
 
+const execAsync = promisify(exec);
+
+const getFilesystemRoots = async (): Promise<string[]> => {
+	if (process.platform === "win32") {
+		try {
+			const { stdout } = await execAsync("wmic logicaldisk get name", { encoding: "utf8" });
+			const lines = stdout.split("\n").map((line) => line.trim()).filter(Boolean);
+			// Skip the header "Name" and get the drive letters
+			const drives = lines.slice(1).filter((line) => /^[A-Z]:$/i.test(line)).map((drive) => `${drive}\\`);
+			return drives.length > 0 ? drives : ["C:\\"];
+		} catch {
+			return ["C:\\"];
+		}
+	}
+	return ["/"];
+};
+
+const getDefaultBrowsePath = async (): Promise<string> => {
+	if (process.platform === "win32") {
+		const roots = await getFilesystemRoots();
+		return roots[0] || "C:\\";
+	}
+	return "/";
+};
+
 const browseFilesystem = async (browsePath: string) => {
 	const normalizedPath = path.normalize(browsePath);
 
@@ -412,4 +439,6 @@ export const volumeService = {
 	checkHealth,
 	listFiles,
 	browseFilesystem,
+	getFilesystemRoots,
+	getDefaultBrowsePath,
 };

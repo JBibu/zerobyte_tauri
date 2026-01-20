@@ -21,6 +21,8 @@ import {
 	type ListFilesDto,
 	browseFilesystemDto,
 	type BrowseFilesystemDto,
+	filesystemRootsDto,
+	type FilesystemRootsDto,
 } from "./volume.dto";
 import { volumeService } from "./volume.service";
 import { getVolumePath } from "./helpers";
@@ -118,9 +120,15 @@ export const volumeController = new Hono()
 
 		return c.json<ListFilesDto>(response, 200);
 	})
+	.get("/filesystem/roots", filesystemRootsDto, async (c) => {
+		const roots = await volumeService.getFilesystemRoots();
+
+		return c.json<FilesystemRootsDto>({ roots }, 200);
+	})
 	.get("/filesystem/browse", browseFilesystemDto, async (c) => {
-		const path = c.req.query("path") || "/";
-		const result = await volumeService.browseFilesystem(path);
+		const pathParam = c.req.query("path");
+		const browsePath = pathParam || (await volumeService.getDefaultBrowsePath());
+		const result = await volumeService.browseFilesystem(browsePath);
 
 		const response = {
 			directories: result.directories,
