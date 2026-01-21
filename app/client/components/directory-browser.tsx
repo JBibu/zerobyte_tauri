@@ -15,10 +15,13 @@ const fetchFilesystemRoots = async (): Promise<{ roots: string[] }> => {
 	const response = await client.get<{ roots: string[] }>({
 		url: "/api/v1/volumes/filesystem/roots",
 	});
-	// The client extracts nested data, so response.data is string[] not { roots: string[] }
 	const data = response.data;
+	// Handle both wrapped { roots: [...] } and unwrapped [...] responses
 	if (Array.isArray(data)) {
 		return { roots: data };
+	}
+	if (data && typeof data === "object" && "roots" in data && Array.isArray(data.roots)) {
+		return { roots: data.roots };
 	}
 	return { roots: ["/"] };
 };
@@ -49,6 +52,7 @@ export const DirectoryBrowser = ({ onSelectPath, selectedPath }: Props) => {
 	const fileBrowser = useFileBrowser({
 		initialData: data,
 		isLoading: rootsLoading || isLoading,
+		rootPath: firstRoot,
 		rootEntries,
 		fetchFolder: async (path) => {
 			return await queryClient.ensureQueryData(browseFilesystemOptions({ query: { path } }));

@@ -8,7 +8,7 @@ import { logger } from "../../../utils/logger";
 import { getMountForPath } from "../../../utils/mountinfo";
 import { withTimeout } from "../../../utils/timeout";
 import type { VolumeBackend } from "../backend";
-import { executeMount, executeUnmount, isPathAccessible, createTestFile } from "../utils/backend-utils";
+import { executeMount, executeUnmount, isPathAccessible } from "../utils/backend-utils";
 import { BACKEND_STATUS, type BackendConfig } from "~/schemas/volumes";
 import { exec } from "~/server/utils/spawn";
 

@@ -3,6 +3,7 @@ import path from "node:path";
 import { DATABASE_URL, VOLUME_MOUNT_BASE, REPOSITORY_BASE, RESTIC_CACHE_DIR } from "./constants";
 import { getZerobytePath, IS_WINDOWS, IS_SERVICE_MODE } from "./platform";
 import { logger } from "../utils/logger";
+import { toMessage } from "../utils/errors";
 
 /**
  * Check if this is the first run by checking if the database exists
@@ -43,7 +44,7 @@ export async function ensureDataDirectories(): Promise<void> {
 			await fs.mkdir(dir, { recursive: true });
 			logger.debug(`Ensured directory exists: ${dir}`);
 		} catch (error) {
-			logger.warn(`Failed to create directory ${dir}: ${error}`);
+			logger.warn(`Failed to create directory ${dir}: ${toMessage(error)}`);
 		}
 	}
 

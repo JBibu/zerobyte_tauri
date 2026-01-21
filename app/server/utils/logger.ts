@@ -6,7 +6,7 @@ import { getZerobytePath } from "../core/platform";
 const { printf, combine, colorize, timestamp } = format;
 
 const printConsole = printf((info) => `${info.level} > ${String(info.message)}`);
-const printFile = printf((info) => `${info.timestamp} [${info.level.toUpperCase()}] ${String(info.message)}`);
+const printFile = printf((info) => `${String(info.timestamp)} [${info.level.toUpperCase()}] ${String(info.message)}`);
 const consoleFormat = combine(colorize(), printConsole);
 const fileFormat = combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), printFile);
 
