@@ -5,7 +5,13 @@ import { Button } from "~/client/components/ui/button";
 import { CardContent, CardDescription, CardTitle } from "~/client/components/ui/card";
 import { useSystemInfo } from "~/client/hooks/use-system-info";
 
-type ServiceStatus = "running" | "stopped" | "not_installed" | "unknown";
+type ServiceStatusString = "running" | "stopped" | "not_installed" | "unknown";
+
+interface ServiceStatusResponse {
+	installed: boolean;
+	running: boolean;
+	start_type: string | null;
+}
 
 interface TauriWindow {
 	__TAURI__?: {
@@ -29,7 +35,7 @@ const invoke = async <T,>(cmd: string, args?: Record<string, unknown>): Promise<
 
 export const WindowsServiceSection = () => {
 	const { platform } = useSystemInfo();
-	const [serviceStatus, setServiceStatus] = useState<ServiceStatus>("unknown");
+	const [serviceStatus, setServiceStatus] = useState<ServiceStatusString>("unknown");
 	const [isLoading, setIsLoading] = useState(false);
 	const [actionInProgress, setActionInProgress] = useState<string | null>(null);
 
@@ -41,8 +47,15 @@ export const WindowsServiceSection = () => {
 
 		try {
 			setIsLoading(true);
-			const status = await invoke<ServiceStatus>("get_service_status");
-			setServiceStatus(status);
+			const response = await invoke<ServiceStatusResponse>("get_service_status");
+			// Convert the response to a status string
+			if (!response.installed) {
+				setServiceStatus("not_installed");
+			} else if (response.running) {
+				setServiceStatus("running");
+			} else {
+				setServiceStatus("stopped");
+			}
 		} catch (error) {
 			console.error("Failed to get service status:", error);
 			setServiceStatus("unknown");
