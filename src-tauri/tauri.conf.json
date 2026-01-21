@@ -10,6 +10,7 @@
     "frontendDist": "assets"
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "C3i Backup ONE",
