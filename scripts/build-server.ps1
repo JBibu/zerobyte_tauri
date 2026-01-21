@@ -85,6 +85,13 @@ Write-Host "Building Windows Service binary..." -ForegroundColor Yellow
 $TauriSuffix = "x86_64-pc-windows-msvc"
 $serviceOutputFile = Join-Path (Resolve-Path $OutputDir) "zerobyte-service-$TauriSuffix.exe"
 
+# Create a placeholder file to satisfy Tauri's build script validation
+# (Tauri checks externalBin resources exist even when building other binaries)
+if (-not (Test-Path $serviceOutputFile)) {
+    Write-Host "Creating placeholder for service binary..." -ForegroundColor Gray
+    New-Item -ItemType File -Path $serviceOutputFile -Force | Out-Null
+}
+
 Push-Location "src-tauri"
 try {
     # Build only the service binary in release mode
