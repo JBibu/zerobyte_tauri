@@ -80,4 +80,42 @@ if (-not (Test-Path $distDir)) {
 Copy-Item -Path "dist\client" -Destination $distDir -Recurse -Force
 Write-Host "Client assets copied to: $(Join-Path $distDir 'client')" -ForegroundColor Green
 
+# Build the Windows Service binary
+Write-Host "Building Windows Service binary..." -ForegroundColor Yellow
+$TauriSuffix = "x86_64-pc-windows-msvc"
+$serviceOutputFile = Join-Path (Resolve-Path $OutputDir) "zerobyte-service-$TauriSuffix.exe"
+
+# Create a placeholder file to satisfy Tauri's build script validation
+# (Tauri checks externalBin resources exist even when building other binaries)
+if (-not (Test-Path $serviceOutputFile)) {
+    Write-Host "Creating placeholder for service binary..." -ForegroundColor Gray
+    New-Item -ItemType File -Path $serviceOutputFile -Force | Out-Null
+}
+
+Push-Location "src-tauri"
+try {
+    # Build only the service binary in release mode
+    & cargo build --release --bin zerobyte-service --target $TauriSuffix
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Service binary compilation failed!" -ForegroundColor Red
+        exit 1
+    }
+
+    # Copy the built binary to the binaries directory with the Tauri naming convention
+    $builtService = "target\$TauriSuffix\release\zerobyte-service.exe"
+    if (Test-Path $builtService) {
+        Copy-Item $builtService -Destination $serviceOutputFile -Force
+        $fileInfo = Get-Item $serviceOutputFile
+        Write-Host "Service binary compiled successfully!" -ForegroundColor Green
+        Write-Host "Output: $serviceOutputFile" -ForegroundColor Gray
+        Write-Host "Size: $([math]::Round($fileInfo.Length / 1MB, 2)) MB" -ForegroundColor Gray
+    } else {
+        Write-Host "Warning: Service binary not found at $builtService" -ForegroundColor Yellow
+        Write-Host "Note: You may need to install the Windows MSVC target: rustup target add $TauriSuffix" -ForegroundColor Yellow
+    }
+} finally {
+    Pop-Location
+}
+
 Write-Host "Done!" -ForegroundColor Green

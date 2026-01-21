@@ -12,17 +12,17 @@ pub struct AppState {
     /// The sidecar process handle (None if using service mode)
     pub sidecar_handle: Arc<Mutex<Option<tauri_plugin_shell::process::CommandChild>>>,
     /// Whether we're connected to the Windows Service instead of sidecar
-    pub using_service: bool,
+    pub using_service: Arc<Mutex<bool>>,
     /// The port the backend is running on
-    pub backend_port: u16,
+    pub backend_port: Arc<Mutex<u16>>,
 }
 
 impl Default for AppState {
     fn default() -> Self {
         Self {
             sidecar_handle: Arc::new(Mutex::new(None)),
-            using_service: false,
-            backend_port: 4096,
+            using_service: Arc::new(Mutex::new(false)),
+            backend_port: Arc::new(Mutex::new(4096)),
         }
     }
 }
@@ -104,6 +104,9 @@ pub async fn start_sidecar(
     // First, check if the Windows Service is running
     if is_service_running().await {
         info!("Windows Service detected on port 4097, connecting to service instead of starting sidecar");
+        // Update state to reflect service mode
+        *state.using_service.lock().await = true;
+        *state.backend_port.lock().await = 4097;
         return Ok(());
     }
 
@@ -181,18 +184,19 @@ pub async fn start_sidecar(
 /// Stop the sidecar server process gracefully
 pub async fn stop_sidecar(state: &AppState) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Don't stop anything if we're using the service
-    if state.using_service {
+    if *state.using_service.lock().await {
         info!("Using Windows Service, not stopping sidecar");
         return Ok(());
     }
 
     let mut handle = state.sidecar_handle.lock().await;
+    let backend_port = *state.backend_port.lock().await;
 
     if let Some(child) = handle.take() {
         info!("Requesting graceful shutdown...");
 
         // Try graceful shutdown first
-        let graceful = request_graceful_shutdown(state.backend_port).await;
+        let graceful = request_graceful_shutdown(backend_port).await;
 
         if graceful {
             // Wait a bit for graceful shutdown
@@ -239,12 +243,10 @@ pub fn run() {
             let app_handle = app.handle().clone();
             let state = app.state::<AppState>();
 
-            // Clone Arc for async block
-            let state_clone = AppState {
-                sidecar_handle: state.sidecar_handle.clone(),
-                using_service: state.using_service,
-                backend_port: state.backend_port,
-            };
+            // Clone Arcs for async block
+            let sidecar_handle = state.sidecar_handle.clone();
+            let using_service = state.using_service.clone();
+            let backend_port = state.backend_port.clone();
 
             // Open devtools in debug mode only
             #[cfg(debug_assertions)]
@@ -257,7 +259,13 @@ pub fn run() {
                 let _ = app_handle.emit("loading-status", "Starting sidecar...");
                 info!("Starting sidecar...");
 
-                if let Err(e) = start_sidecar(&app_handle, &state_clone).await {
+                let state_ref = AppState {
+                    sidecar_handle,
+                    using_service,
+                    backend_port: backend_port.clone(),
+                };
+
+                if let Err(e) = start_sidecar(&app_handle, &state_ref).await {
                     let msg = format!("Failed to start sidecar: {}", e);
                     error!("{}", msg);
                     let _ = app_handle.emit("loading-status", msg);
@@ -269,7 +277,8 @@ pub fn run() {
 
                 // Navigate to the SSR server instead of using static assets
                 if let Some(window) = app_handle.get_webview_window("main") {
-                    let url = format!("http://localhost:{}/", state_clone.backend_port);
+                    let port = *backend_port.lock().await;
+                    let url = format!("http://localhost:{}/", port);
                     info!("Navigating to SSR server at {}", url);
                     if let Err(e) = window.navigate(url.parse().unwrap()) {
                         let msg = format!("Failed to navigate: {}", e);
@@ -292,8 +301,8 @@ pub fn run() {
                 // Stop the sidecar when the window is closed
                 let state_clone = AppState {
                     sidecar_handle: state.sidecar_handle.clone(),
-                    using_service: state.using_service,
-                    backend_port: state.backend_port,
+                    using_service: state.using_service.clone(),
+                    backend_port: state.backend_port.clone(),
                 };
 
                 tauri::async_runtime::block_on(async {

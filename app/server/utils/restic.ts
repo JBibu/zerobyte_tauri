@@ -12,7 +12,7 @@ import type { RetentionPolicy } from "../modules/backups/backups.dto";
 import { safeSpawn, exec } from "./spawn";
 import type { CompressionMode, RepositoryConfig, OverwriteMode, BandwidthLimit } from "~/schemas/restic";
 import { ResticError } from "./errors";
-import { getDefaultPath } from "../core/platform";
+import { getDefaultPath, getNullDevice } from "../core/platform";
 
 const getTempDir = () => os.tmpdir();
 
@@ -190,7 +190,7 @@ export const buildEnv = async (config: RepositoryConfig) => {
 			];
 
 			if (config.skipHostKeyCheck || !config.knownHosts) {
-				sshArgs.push("-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null");
+				sshArgs.push("-o", "StrictHostKeyChecking=no", "-o", `UserKnownHostsFile=${getNullDevice()}`);
 			} else if (config.knownHosts) {
 				const knownHostsPath = path.join(getTempDir(), `zerobyte-known-hosts-${crypto.randomBytes(8).toString("hex")}`);
 				await fs.writeFile(knownHostsPath, config.knownHosts, { mode: 0o600 });

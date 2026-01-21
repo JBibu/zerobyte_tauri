@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Check, Pencil, X, AlertTriangle } from "lucide-react";
-import { REPOSITORY_BASE } from "~/client/lib/constants";
+import { useSystemInfo } from "~/client/hooks/use-system-info";
 import { Button } from "../../../../components/ui/button";
 import { FormItem, FormLabel, FormDescription } from "../../../../components/ui/form";
 import { DirectoryBrowser } from "../../../../components/directory-browser";
@@ -24,6 +24,12 @@ type Props = {
 export const LocalRepositoryForm = ({ form }: Props) => {
 	const [showPathBrowser, setShowPathBrowser] = useState(false);
 	const [showPathWarning, setShowPathWarning] = useState(false);
+	const { platform } = useSystemInfo();
+
+	// Construct the default repository path from the system's data path
+	const defaultRepoPath = platform?.dataPath
+		? `${platform.dataPath}${platform.os === "windows" ? "\\" : "/"}repositories`
+		: "/var/lib/zerobyte/repositories";
 
 	return (
 		<>
@@ -31,7 +37,7 @@ export const LocalRepositoryForm = ({ form }: Props) => {
 				<FormLabel>Repository Directory</FormLabel>
 				<div className="flex items-center gap-2">
 					<div className="flex-1 text-sm font-mono bg-muted px-3 py-2 rounded-md border">
-						{form.watch("path") || REPOSITORY_BASE}
+						{form.watch("path") || defaultRepoPath}
 					</div>
 					<Button type="button" variant="outline" onClick={() => setShowPathWarning(true)} size="sm">
 						<Pencil className="h-4 w-4 mr-2" />
@@ -54,7 +60,7 @@ export const LocalRepositoryForm = ({ form }: Props) => {
 								If the path is not a host mount, you will lose your repository data when the container restarts.
 							</p>
 							<p className="text-sm text-muted-foreground">
-								The default path <code className="bg-muted px-1 rounded">{REPOSITORY_BASE}</code> is safe to use if you
+								The default path <code className="bg-muted px-1 rounded">{defaultRepoPath}</code> is safe to use if you
 								followed the recommended Docker Compose setup.
 							</p>
 						</AlertDialogDescription>
@@ -84,7 +90,7 @@ export const LocalRepositoryForm = ({ form }: Props) => {
 					<div className="py-4">
 						<DirectoryBrowser
 							onSelectPath={(path) => form.setValue("path", path)}
-							selectedPath={form.watch("path") || REPOSITORY_BASE}
+							selectedPath={form.watch("path") || defaultRepoPath}
 						/>
 					</div>
 					<AlertDialogFooter>

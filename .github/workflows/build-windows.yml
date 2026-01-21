@@ -15,8 +15,11 @@ jobs:
       contents: write
 
     steps:
+      - name: Enable long paths
+        run: git config --system core.longpaths true
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -46,11 +49,39 @@ jobs:
       - name: Build server binary
         run: pwsh ./scripts/build-server.ps1
 
+      - name: Verify binaries and resources
+        run: |
+          Write-Host "=== Binaries ===" -ForegroundColor Cyan
+          Get-ChildItem src-tauri/binaries -Recurse | ForEach-Object {
+            $size = if ($_.PSIsContainer) { "DIR" } else { "$([math]::Round($_.Length / 1MB, 2)) MB" }
+            Write-Host "  $($_.FullName) ($size)"
+          }
+          Write-Host "`n=== Checking required binaries ===" -ForegroundColor Cyan
+          $required = @(
+            "src-tauri/binaries/zerobyte-server-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/zerobyte-service-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/restic-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/rclone-x86_64-pc-windows-msvc.exe",
+            "src-tauri/binaries/shoutrrr-x86_64-pc-windows-msvc.exe"
+          )
+          $allExist = $true
+          foreach ($bin in $required) {
+            $exists = Test-Path $bin
+            $status = if ($exists) { "OK" } else { "MISSING" }
+            $color = if ($exists) { "Green" } else { "Red" }
+            Write-Host "  $bin`: $status" -ForegroundColor $color
+            if (-not $exists) { $allExist = $false }
+          }
+          if (-not $allExist) {
+            Write-Host "Some binaries are missing!" -ForegroundColor Red
+            exit 1
+          }
+
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2"
 
       - name: Build Tauri app
-        run: cargo tauri build
+        run: cargo tauri build --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

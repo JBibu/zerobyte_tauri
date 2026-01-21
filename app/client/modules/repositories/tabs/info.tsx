@@ -18,7 +18,7 @@ import {
 	AlertDialogTitle,
 } from "~/client/components/ui/alert-dialog";
 import type { Repository } from "~/client/lib/types";
-import { REPOSITORY_BASE } from "~/client/lib/constants";
+import { useSystemInfo } from "~/client/hooks/use-system-info";
 import { formatDateTime, formatTimeAgo } from "~/client/lib/datetime";
 import { updateRepositoryMutation } from "~/client/api-client/@tanstack/react-query.gen";
 import type { CompressionMode, RepositoryConfig } from "~/schemas/restic";
@@ -27,7 +27,7 @@ type Props = {
 	repository: Repository;
 };
 
-const getEffectiveLocalPath = (repository: Repository): string | null => {
+const getEffectiveLocalPath = (repository: Repository, defaultRepoBase: string): string | null => {
 	if (repository.type !== "local") return null;
 	const config = repository.config as { name: string; path?: string; isExistingRepository?: boolean };
 
@@ -35,7 +35,8 @@ const getEffectiveLocalPath = (repository: Repository): string | null => {
 		return config.path ?? null;
 	}
 
-	const basePath = config.path || REPOSITORY_BASE;
+	const basePath = config.path || defaultRepoBase;
+	// Use forward slash for path concatenation (works on all platforms in URLs/display)
 	return `${basePath}/${config.name}`;
 };
 
@@ -45,8 +46,14 @@ export const RepositoryInfoTabContent = ({ repository }: Props) => {
 		(repository.compressionMode as CompressionMode) || "off",
 	);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+	const { platform } = useSystemInfo();
 
-	const effectiveLocalPath = getEffectiveLocalPath(repository);
+	// Construct the default repository path from the system's data path
+	const defaultRepoBase = platform?.dataPath
+		? `${platform.dataPath}${platform.os === "windows" ? "\\" : "/"}repositories`
+		: "/var/lib/zerobyte/repositories";
+
+	const effectiveLocalPath = getEffectiveLocalPath(repository, defaultRepoBase);
 
 	const updateMutation = useMutation({
 		...updateRepositoryMutation(),
