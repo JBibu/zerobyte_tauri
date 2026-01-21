@@ -117,14 +117,14 @@ pub async fn start_sidecar(
     #[cfg(debug_assertions)]
     if wait_for_server(4096, 30).await {
         info!("Development server already running on port 4096, skipping sidecar");
-        return Ok(());
+        return Ok(4096);
     }
 
     // In release mode, quick check if server is already running (e.g., from previous instance)
     #[cfg(not(debug_assertions))]
     if wait_for_server(4096, 2).await {
         info!("Server already running on port 4096, skipping sidecar");
-        return Ok(());
+        return Ok(4096);
     }
 
     let shell = app.shell();
@@ -302,7 +302,7 @@ pub fn run() {
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
                 .menu(&menu)
-                .menu_on_left_click(false)
+                .show_menu_on_left_click(false)
                 .tooltip("C3i Backup ONE")
                 .on_menu_event(|app, event| {
                     let window = app.get_webview_window("main");
