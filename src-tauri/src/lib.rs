@@ -1,5 +1,6 @@
 pub mod commands;
 
+use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tauri::menu::{Menu, MenuItem};
@@ -14,17 +15,17 @@ pub struct AppState {
     /// The sidecar process handle (None if using service mode)
     pub sidecar_handle: Arc<Mutex<Option<tauri_plugin_shell::process::CommandChild>>>,
     /// Whether we're connected to the Windows Service instead of sidecar
-    pub using_service: bool,
+    pub using_service: AtomicBool,
     /// The port the backend is running on
-    pub backend_port: u16,
+    pub backend_port: AtomicU16,
 }
 
 impl Default for AppState {
     fn default() -> Self {
         Self {
             sidecar_handle: Arc::new(Mutex::new(None)),
-            using_service: false,
-            backend_port: 4096,
+            using_service: AtomicBool::new(false),
+            backend_port: AtomicU16::new(4096),
         }
     }
 }
@@ -99,14 +100,17 @@ async fn request_graceful_shutdown(port: u16) -> bool {
 }
 
 /// Start the sidecar server process
+/// Returns the port that the backend is running on
 pub async fn start_sidecar(
     app: &tauri::AppHandle,
     state: &AppState,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<u16, Box<dyn std::error::Error + Send + Sync>> {
     // First, check if the Windows Service is running
     if is_service_running().await {
         info!("Windows Service detected on port 4097, connecting to service instead of starting sidecar");
-        return Ok(());
+        state.using_service.store(true, Ordering::SeqCst);
+        state.backend_port.store(4097, Ordering::SeqCst);
+        return Ok(4097);
     }
 
     // In dev mode only, check if the Vite dev server is already running
@@ -188,13 +192,13 @@ pub async fn start_sidecar(
     }
 
     info!("Sidecar server started successfully");
-    Ok(())
+    Ok(4096)
 }
 
 /// Stop the sidecar server process gracefully
 pub async fn stop_sidecar(state: &AppState) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Don't stop anything if we're using the service
-    if state.using_service {
+    if state.using_service.load(Ordering::SeqCst) {
         info!("Using Windows Service, not stopping sidecar");
         return Ok(());
     }
@@ -205,7 +209,7 @@ pub async fn stop_sidecar(state: &AppState) -> Result<(), Box<dyn std::error::Er
         info!("Requesting graceful shutdown...");
 
         // Try graceful shutdown first
-        let graceful = request_graceful_shutdown(state.backend_port).await;
+        let graceful = request_graceful_shutdown(state.backend_port.load(Ordering::SeqCst)).await;
 
         if graceful {
             // Wait a bit for graceful shutdown
@@ -262,14 +266,6 @@ pub fn run() {
         ])
         .setup(|app| {
             let app_handle = app.handle().clone();
-            let state = app.state::<AppState>();
-
-            // Clone Arc for async block
-            let state_clone = AppState {
-                sidecar_handle: state.sidecar_handle.clone(),
-                using_service: state.using_service,
-                backend_port: state.backend_port,
-            };
 
             // Open devtools in debug mode only
             #[cfg(debug_assertions)]
@@ -321,19 +317,16 @@ pub fn run() {
                             if let Some(window) = window {
                                 let _ = window.show();
                                 let _ = window.set_focus();
-                                let url = format!("http://localhost:4096/{}", event.id.as_ref());
+                                let state = app.state::<AppState>();
+                                let port = state.backend_port.load(Ordering::SeqCst);
+                                let url = format!("http://localhost:{}/{}", port, event.id.as_ref());
                                 let _ = window.navigate(url.parse().unwrap());
                             }
                         }
                         "quit" => {
                             let state = app.state::<AppState>();
-                            let state_clone = AppState {
-                                sidecar_handle: state.sidecar_handle.clone(),
-                                using_service: state.using_service,
-                                backend_port: state.backend_port,
-                            };
                             tauri::async_runtime::block_on(async {
-                                if let Err(e) = stop_sidecar(&state_clone).await {
+                                if let Err(e) = stop_sidecar(&state).await {
                                     error!("Failed to stop sidecar: {}", e);
                                 }
                             });
@@ -360,22 +353,26 @@ pub fn run() {
 
             // Start the sidecar and navigate to server
             tauri::async_runtime::spawn(async move {
-                let _ = app_handle.emit("loading-status", "Starting sidecar...");
-                info!("Starting sidecar...");
+                let _ = app_handle.emit("loading-status", "Starting backend...");
+                info!("Starting backend...");
 
-                if let Err(e) = start_sidecar(&app_handle, &state_clone).await {
-                    let msg = format!("Failed to start sidecar: {}", e);
-                    error!("{}", msg);
-                    let _ = app_handle.emit("loading-status", msg);
-                    return;
-                }
+                let state = app_handle.state::<AppState>();
+                let port = match start_sidecar(&app_handle, &state).await {
+                    Ok(port) => port,
+                    Err(e) => {
+                        let msg = format!("Failed to start backend: {}", e);
+                        error!("{}", msg);
+                        let _ = app_handle.emit("loading-status", msg);
+                        return;
+                    }
+                };
 
-                let _ = app_handle.emit("loading-status", "Sidecar ready, navigating...");
-                info!("Sidecar ready, navigating to server...");
+                let _ = app_handle.emit("loading-status", "Backend ready, navigating...");
+                info!("Backend ready on port {}, navigating to server...", port);
 
                 // Navigate to the SSR server instead of using static assets
                 if let Some(window) = app_handle.get_webview_window("main") {
-                    let url = format!("http://localhost:{}/", state_clone.backend_port);
+                    let url = format!("http://localhost:{}/", port);
                     info!("Navigating to SSR server at {}", url);
                     if let Err(e) = window.navigate(url.parse().unwrap()) {
                         let msg = format!("Failed to navigate: {}", e);
