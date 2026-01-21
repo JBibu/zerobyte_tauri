@@ -1,8 +1,8 @@
 [package]
 name = "zerobyte"
 version = "0.1.0"
-description = "Zerobyte - Backup automation powered by Restic"
-authors = ["Zerobyte Contributors"]
+description = "C3i Backup ONE - Backup automation powered by Restic"
+authors = ["C3i Servicios Informáticos"]
 license = "AGPL-3.0"
 repository = "https://github.com/zerobytecode/zerobyte"
 edition = "2021"

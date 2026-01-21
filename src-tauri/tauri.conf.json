@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Zerobyte",
+  "productName": "C3i Backup ONE",
   "version": "0.1.0",
-  "identifier": "com.zerobyte.app",
+  "identifier": "com.c3i.backupone",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:4096",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Zerobyte",
+        "title": "C3i Backup ONE",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -56,8 +56,8 @@
     },
     "category": "Utility",
     "shortDescription": "Backup automation powered by Restic",
-    "longDescription": "Zerobyte is a backup automation tool that provides a modern web interface for managing encrypted backups using Restic.",
-    "publisher": "Zerobyte Contributors"
+    "longDescription": "C3i Backup ONE is a backup automation tool that provides a modern web interface for managing encrypted backups using Restic.",
+    "publisher": "C3i Servicios Informáticos"
   },
   "plugins": {
     "shell": {
