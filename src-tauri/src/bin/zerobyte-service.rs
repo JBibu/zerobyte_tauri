@@ -1,7 +1,7 @@
-//! Zerobyte Windows Service
+//! C3i Backup ONE Windows Service
 //!
 //! This binary runs as a Windows Service and manages the zerobyte-server process.
-//! It uses port 4097 (separate from desktop's 4096) and stores data in %PROGRAMDATA%\Zerobyte.
+//! It uses port 4097 (separate from desktop's 4096) and stores data in %PROGRAMDATA%\C3i Backup ONE.
 
 #[cfg(windows)]
 mod windows_service {
@@ -235,7 +235,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if args.len() > 1 && args[1] == "--install" {
         // Install the service
-        println!("Installing Zerobyte service...");
+        println!("Installing C3i Backup ONE service...");
         install_service()?;
         println!("Service installed successfully");
         return Ok(());
@@ -243,7 +243,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if args.len() > 1 && args[1] == "--uninstall" {
         // Uninstall the service
-        println!("Uninstalling Zerobyte service...");
+        println!("Uninstalling C3i Backup ONE service...");
         uninstall_service()?;
         println!("Service uninstalled successfully");
         return Ok(());
@@ -266,7 +266,7 @@ fn install_service() -> Result<(), Box<dyn std::error::Error>> {
             "ZerobyteService",
             &format!("binPath= \"{}\"", exe_path),
             "start= auto",
-            "DisplayName= Zerobyte Backup Service",
+            "DisplayName= C3i Backup ONE Service",
         ])
         .output()?;
 
@@ -280,7 +280,7 @@ fn install_service() -> Result<(), Box<dyn std::error::Error>> {
         .args([
             "description",
             "ZerobyteService",
-            "Background backup service for Zerobyte - manages scheduled backups",
+            "Background backup service for C3i Backup ONE - manages scheduled backups",
         ])
         .output();
 

@@ -42,6 +42,7 @@ import {
 } from "../notifications/notifications.dto";
 import { notificationsService } from "../notifications/notifications.service";
 import { requireAuth } from "../auth/auth.middleware";
+import { logger } from "../../utils/logger";
 
 export const backupScheduleController = new Hono()
 	.use(requireAuth)
@@ -89,7 +90,7 @@ export const backupScheduleController = new Hono()
 		const scheduleId = c.req.param("scheduleId");
 
 		backupsService.executeBackup(Number(scheduleId), true).catch((err) => {
-			console.error(`Error executing manual backup for schedule ${scheduleId}:`, err);
+			logger.error(`Error executing manual backup for schedule ${scheduleId}:`, err);
 		});
 
 		return c.json<RunBackupNowDto>({ success: true }, 200);

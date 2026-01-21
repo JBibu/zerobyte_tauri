@@ -11,9 +11,9 @@ import { runCLI } from "./cli";
 import { runMigrations } from "./modules/lifecycle/migrations";
 
 // Log startup paths for debugging
-logger.info(`[Startup] process.cwd(): ${process.cwd()}`);
-logger.info(`[Startup] process.execPath: ${process.execPath}`);
-logger.info(`[Startup] execDir: ${path.dirname(process.execPath)}`);
+logger.debug(`[Startup] process.cwd(): ${process.cwd()}`);
+logger.debug(`[Startup] process.execPath: ${process.execPath}`);
+logger.debug(`[Startup] execDir: ${path.dirname(process.execPath)}`);
 
 setSchema(schema);
 

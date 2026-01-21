@@ -3,7 +3,6 @@ import path from "node:path";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import { DATABASE_URL } from "../core/constants";
-import { IS_WINDOWS, getZerobytePath } from "../core/platform";
 import fs from "node:fs";
 import { config } from "../core/config";
 import type * as schemaTypes from "./schema";

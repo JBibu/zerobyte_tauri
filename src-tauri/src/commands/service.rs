@@ -115,8 +115,8 @@ pub async fn install_service(app: tauri::AppHandle) -> Result<(), String> {
         // Create a batch script to install the service with elevation
         let script = format!(
             r#"@echo off
-sc create ZerobyteService binPath= "{}" start= auto DisplayName= "Zerobyte Backup Service"
-sc description ZerobyteService "Background backup service for Zerobyte"
+sc create ZerobyteService binPath= "{}" start= auto DisplayName= "C3i Backup ONE Service"
+sc description ZerobyteService "Background backup service for C3i Backup ONE"
 sc start ZerobyteService
 "#,
             service_exe.display()

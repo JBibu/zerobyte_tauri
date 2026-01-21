@@ -317,7 +317,7 @@ const listFiles = async (name: string, subPath?: string) => {
 	const normalizedPath = path.normalize(requestedPath);
 
 	// Log paths for debugging
-	logger.info(`[listFiles] volumePath: ${volumePath}, normalizedVolumePath: ${normalizedVolumePath}, requestedPath: ${requestedPath}, normalizedPath: ${normalizedPath}`);
+	logger.debug(`[listFiles] volumePath: ${volumePath}, normalizedVolumePath: ${normalizedVolumePath}, requestedPath: ${requestedPath}, normalizedPath: ${normalizedPath}`);
 
 	if (!normalizedPath.startsWith(normalizedVolumePath)) {
 		logger.warn(`[listFiles] Path validation failed: ${normalizedPath} does not start with ${normalizedVolumePath}`);
