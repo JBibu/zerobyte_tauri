@@ -1,6 +1,6 @@
 # Mount an rclone config (for rclone repositories)
 
-This example shows how to make an existing rclone configuration available inside the Zerobyte container.
+This example shows how to make an existing rclone configuration available inside the C3i Backup ONE container.
 
 Use this if you want to use **rclone** as a repository backend (Dropbox/Google Drive/OneDrive/etc.).
 

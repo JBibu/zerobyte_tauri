@@ -46,7 +46,7 @@ export const handle = {
 
 export function meta({ params }: Route.MetaArgs) {
 	return [
-		{ title: `Zerobyte - ${params.name}` },
+		{ title: `C3i Backup ONE - ${params.name}` },
 		{
 			name: "description",
 			content: "View and manage volume details, configuration, and files.",

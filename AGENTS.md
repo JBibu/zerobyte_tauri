@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-Zerobyte is a backup automation tool built on top of Restic that provides a web interface for scheduling, managing, and monitoring encrypted backups. It supports multiple volume backends (NFS, SMB, WebDAV, SFTP, local directories) and repository backends (S3, Azure, GCS, local, and rclone-based storage).
+C3i Backup ONE is a backup automation tool built on top of Restic that provides a web interface for scheduling, managing, and monitoring encrypted backups. It supports multiple volume backends (NFS, SMB, WebDAV, SFTP, local directories) and repository backends (S3, Azure, GCS, local, and rclone-based storage).
 
 ## Technology Stack
 
@@ -167,7 +167,7 @@ These schemas provide runtime validation and TypeScript types.
 
 ## Restic Integration
 
-Zerobyte is a wrapper around Restic for backup operations. Key integration points:
+C3i Backup ONE is a wrapper around Restic for backup operations. Key integration points:
 
 **Repository Management**:
 

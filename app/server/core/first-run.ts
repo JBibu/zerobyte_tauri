@@ -46,7 +46,7 @@ export async function ensureDataDirectories(): Promise<void> {
 	}
 
 	if (IS_WINDOWS) {
-		logger.info(`Zerobyte data directory: ${zerobytePath}`);
+		logger.info(`C3i Backup ONE data directory: ${zerobytePath}`);
 		if (IS_SERVICE_MODE) {
 			logger.info("Running in Windows Service mode");
 		}

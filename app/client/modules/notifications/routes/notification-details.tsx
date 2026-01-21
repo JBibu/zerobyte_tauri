@@ -37,7 +37,7 @@ export const handle = {
 
 export function meta({ params }: Route.MetaArgs) {
 	return [
-		{ title: `Zerobyte - Notification ${params.id}` },
+		{ title: `C3i Backup ONE - Notification ${params.id}` },
 		{
 			name: "description",
 			content: "View and edit notification destination settings.",

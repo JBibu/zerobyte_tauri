@@ -17,7 +17,7 @@ export const handle = {
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Create Notification" },
+		{ title: "C3i Backup ONE - Create Notification" },
 		{
 			name: "description",
 			content: "Create a new notification destination for backup alerts.",

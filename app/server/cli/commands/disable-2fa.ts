@@ -30,7 +30,7 @@ export const disable2FACommand = new Command("disable-2fa")
 	.description("Disable two-factor authentication for a user")
 	.option("-u, --username <username>", "Username of the account")
 	.action(async (options) => {
-		console.info("\n🔐 Zerobyte 2FA Disable\n");
+		console.info("\n🔐 C3i Backup ONE 2FA Disable\n");
 
 		let username = options.username;
 

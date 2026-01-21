@@ -20,7 +20,7 @@ export const handle = {
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Create Repository" },
+		{ title: "C3i Backup ONE - Create Repository" },
 		{
 			name: "description",
 			content: "Create a new backup repository with encryption and compression.",

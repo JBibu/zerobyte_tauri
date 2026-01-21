@@ -60,12 +60,12 @@ export const getZerobytePath = (): string => {
 
 	if (IS_WINDOWS) {
 		if (IS_SERVICE_MODE) {
-			return path.join(getProgramDataPath(), "Zerobyte");
+			return path.join(getProgramDataPath(), "C3i Backup ONE");
 		}
-		return path.join(getAppDataPath(), "Zerobyte");
+		return path.join(getAppDataPath(), "C3i Backup ONE");
 	}
 	if (IS_MACOS) {
-		return path.join(getAppDataPath(), "Zerobyte");
+		return path.join(getAppDataPath(), "C3i Backup ONE");
 	}
 
 	// Linux: Use /var/lib/zerobyte in production (Docker), otherwise use user directory

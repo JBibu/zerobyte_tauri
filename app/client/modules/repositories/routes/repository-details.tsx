@@ -36,7 +36,7 @@ export const handle = {
 
 export function meta({ params, loaderData }: Route.MetaArgs) {
 	return [
-		{ title: `Zerobyte - ${loaderData?.name || params.id}` },
+		{ title: `C3i Backup ONE - ${loaderData?.name || params.id}` },
 		{
 			name: "description",
 			content: "View repository configuration, status, and snapshots.",

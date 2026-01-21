@@ -1,6 +1,6 @@
 # Simplified Docker Compose (no remote mounts)
 
-A reduced-privilege setup for Zerobyte when you do **not** need to mount NFS/SMB/WebDAV from inside the container.
+A reduced-privilege setup for C3i Backup ONE when you do **not** need to mount NFS/SMB/WebDAV from inside the container.
 
 ## Prerequisites
 
@@ -22,4 +22,4 @@ docker compose up -d
 - ✅ No `SYS_ADMIN`
 - ✅ No `/dev/fuse`
 - ✅ Still supports all repository backends (local, S3, GCS, Azure, rclone)
-- ❌ Cannot mount remote shares from inside Zerobyte
+- ❌ Cannot mount remote shares from inside C3i Backup ONE

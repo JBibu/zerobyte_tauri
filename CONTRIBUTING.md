@@ -1,6 +1,6 @@
-# Contributing to Zerobyte
+# Contributing to C3i Backup ONE
 
-Thank you for your interest in contributing to Zerobyte! We welcome contributions from the community and are grateful for your support in making this project better.
+Thank you for your interest in contributing to C3i Backup ONE! We welcome contributions from the community and are grateful for your support in making this project better.
 
 ## Table of Contents
 
@@ -30,7 +30,7 @@ A Contributor License Agreement (CLA) is a legal document in which you state you
 
 We require a CLA for several important reasons:
 
-1. **License Flexibility**: It allows the project to evolve its licensing model if needed in the future without requiring re-approval from all past contributors, ensuring Zerobyte can continue to operate and adapt to changing needs of the community.
+1. **License Flexibility**: It allows the project to evolve its licensing model if needed in the future without requiring re-approval from all past contributors, ensuring C3i Backup ONE can continue to operate and adapt to changing needs of the community.
 
 2. **Patent Protection**: The CLA includes a patent license grant, which protects the project and its users from potential patent claims related to your contributions.
 
@@ -45,7 +45,7 @@ When you submit your first pull request, our CLA Assistant will automatically pr
 3. Follow the link provided to review and sign the CLA electronically
 4. Once signed, the bot will update your PR status
 
-You only need to sign the CLA once, and it will cover all your future contributions to Zerobyte.
+You only need to sign the CLA once, and it will cover all your future contributions to C3i Backup ONE.
 
 ### Key Points of Our CLA
 
@@ -59,7 +59,7 @@ For the complete CLA text, please see the [CLA document](https://cla-assistant.i
 
 ## How to Contribute
 
-There are many ways to contribute to Zerobyte:
+There are many ways to contribute to C3i Backup ONE:
 
 ### Reporting Bugs
 
@@ -67,7 +67,7 @@ If you find a bug, please open an issue with:
 - A clear, descriptive title
 - Steps to reproduce the issue
 - Expected vs. actual behavior
-- Your environment (OS, Docker version, Zerobyte version)
+- Your environment (OS, Docker version, C3i Backup ONE version)
 - Any relevant logs or screenshots
 
 ### Suggesting Features
@@ -97,7 +97,7 @@ Documentation improvements are always welcome! This includes:
 
 ### Translations
 
-We welcome translations to make Zerobyte accessible to more users worldwide. Please open an issue to discuss translation efforts before starting.
+We welcome translations to make C3i Backup ONE accessible to more users worldwide. Please open an issue to discuss translation efforts before starting.
 
 ## Development Setup
 
@@ -164,4 +164,4 @@ If you have questions about contributing, feel free to:
 
 ---
 
-Thank you for contributing to Zerobyte!
+Thank you for contributing to C3i Backup ONE!

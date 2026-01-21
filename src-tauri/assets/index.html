@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zerobyte</title>
+    <title>C3i Backup ONE</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -37,7 +37,7 @@
 <body>
     <div class="loader">
         <div class="spinner"></div>
-        <p>Starting Zerobyte...</p>
+        <p>Starting C3i Backup ONE...</p>
         <p id="status">Initializing...</p>
     </div>
     <script>
@@ -45,7 +45,7 @@
         let dots = 0;
 
         // Log that we loaded
-        console.log('[Zerobyte] Loading page initialized');
+        console.log('[C3i Backup ONE] Loading page initialized');
 
         // Show elapsed time
         const start = Date.now();
@@ -57,7 +57,7 @@
 
         // Listen for navigation (won't fire if navigate() is called from Rust)
         window.addEventListener('beforeunload', () => {
-            console.log('[Zerobyte] Navigation detected');
+            console.log('[C3i Backup ONE] Navigation detected');
         });
     </script>
 </body>

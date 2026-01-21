@@ -76,7 +76,7 @@ export const startup = async () => {
 		.update(backupSchedulesTable)
 		.set({
 			lastBackupStatus: "warning",
-			lastBackupError: "Zerobyte was restarted during the last scheduled backup",
+			lastBackupError: "C3i Backup ONE was restarted during the last scheduled backup",
 			updatedAt: Date.now(),
 		})
 		.where(eq(backupSchedulesTable.lastBackupStatus, "in_progress"))

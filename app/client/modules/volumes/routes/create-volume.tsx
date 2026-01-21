@@ -17,7 +17,7 @@ export const handle = {
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Create Volume" },
+		{ title: "C3i Backup ONE - Create Volume" },
 		{
 			name: "description",
 			content: "Create a new storage volume with automatic mounting and health checks.",

@@ -41,7 +41,7 @@ export const changeUsernameCommand = new Command("change-username")
 	.option("-u, --username <username>", "Current username of the account")
 	.option("-n, --new-username <new-username>", "New username for the account")
 	.action(async (options) => {
-		console.info("\n👤 Zerobyte Change Username\n");
+		console.info("\n👤 C3i Backup ONE Change Username\n");
 
 		let username = options.username;
 		let newUsername = options.newUsername;

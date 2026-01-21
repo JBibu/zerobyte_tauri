@@ -1,6 +1,6 @@
 # Examples
 
-This folder contains runnable, copy/paste-friendly examples for running Zerobyte in different setups.
+This folder contains runnable, copy/paste-friendly examples for running C3i Backup ONE in different setups.
 
 ## Table of contents
 
@@ -14,4 +14,4 @@ This folder contains runnable, copy/paste-friendly examples for running Zerobyte
 
 ### Advanced setups
 
-- [Tailscale sidecar](tailscale-sidecar/README.md) — run Zerobyte behind a Tailscale sidecar using shared networking.
+- [Tailscale sidecar](tailscale-sidecar/README.md) — run C3i Backup ONE behind a Tailscale sidecar using shared networking.

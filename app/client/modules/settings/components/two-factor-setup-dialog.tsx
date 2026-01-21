@@ -40,7 +40,7 @@ export const TwoFactorSetupDialog = ({ open, onOpenChange, onSuccess }: TwoFacto
 
 		const { data, error } = await authClient.twoFactor.enable({
 			password,
-			issuer: "Zerobyte",
+			issuer: "C3i Backup ONE",
 			fetchOptions: {
 				onRequest: () => {
 					setIsEnabling2FA(true);

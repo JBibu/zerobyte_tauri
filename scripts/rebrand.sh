@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Rebranding script: Zerobyte -> C3i Backup ONE
-# This script replaces all occurrences of Zerobyte with the new brand name
+# This script replaces only USER-VISIBLE strings (display text)
+# It does NOT modify code identifiers, package names, or internal references
 
 set -e
 
@@ -21,25 +22,22 @@ show_help() {
     echo "  --dry-run    Preview changes without modifying any files"
     echo "  --help       Show this help message"
     echo ""
-    echo "Replacements performed:"
-    echo "  ┌─────────────┬─────────────────┬──────────────────────────────┐"
-    echo "  │ Pattern     │ Replacement     │ Usage                        │"
-    echo "  ├─────────────┼─────────────────┼──────────────────────────────┤"
-    echo "  │ ZEROBYTE    │ C3I_BACKUP_ONE  │ Environment variables        │"
-    echo "  │ Zerobyte    │ C3i Backup ONE  │ Display names                │"
-    echo "  │ zerobyte    │ c3i-backup-one  │ Package names, Docker, URLs  │"
-    echo "  └─────────────┴─────────────────┴──────────────────────────────┘"
+    echo "What this script changes:"
+    echo "  - Documentation files (.md, .html): All visible text"
+    echo "  - Code files (.ts, .tsx, .js): Only quoted strings (user-facing text)"
+    echo ""
+    echo "What this script does NOT change:"
+    echo "  - Variable names, function names, identifiers"
+    echo "  - Package names (package.json)"
+    echo "  - Environment variable names"
+    echo "  - Import statements"
+    echo "  - Config files"
     echo ""
     echo "Excluded paths:"
     echo "  - node_modules/"
     echo "  - .git/"
     echo "  - dist/"
     echo "  - Binary files (images, fonts, etc.)"
-    echo ""
-    echo "After running, you may need to:"
-    echo "  - Run 'bun install' to regenerate the lockfile"
-    echo "  - Manually rename files containing 'zerobyte' if desired"
-    echo "  - Update external references (GitHub repo, Docker registry, etc.)"
     echo ""
     echo "Examples:"
     echo "  ./scripts/rebrand.sh --dry-run   # Preview changes"
@@ -68,61 +66,100 @@ if [[ "$1" == "--dry-run" ]]; then
     echo ""
 fi
 
-# Function to perform replacements
-do_replace() {
-    local pattern="$1"
-    local replacement="$2"
-    local description="$3"
+# Files to skip (config files, package manifests, etc.)
+SKIP_FILES=(
+    "package.json"
+    "package-lock.json"
+    "bun.lock"
+    "tsconfig.json"
+    "drizzle.config.ts"
+    "tauri.conf.json"
+    "Cargo.toml"
+    "Cargo.lock"
+    ".env"
+    ".env.example"
+    "docker-compose.yml"
+    "mutagen.yml"
+)
 
-    echo -e "${GREEN}Replacing:${NC} $pattern -> $replacement ($description)"
+should_skip_file() {
+    local filename=$(basename "$1")
+    for skip in "${SKIP_FILES[@]}"; do
+        if [[ "$filename" == "$skip" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
 
-    if [[ "$DRY_RUN" == "true" ]]; then
-        # Just count matches
-        count=$(grep -r --include="*" -l "$pattern" "$PROJECT_ROOT" 2>/dev/null | \
-            grep -v "node_modules" | \
-            grep -v ".git/" | \
-            grep -v "dist/" | \
-            grep -v "scripts/rebrand.sh" | \
-            wc -l || echo "0")
-        echo "  Would modify $count files"
-    else
-        # Perform actual replacement
-        find "$PROJECT_ROOT" -type f \
-            -not -path "*/node_modules/*" \
-            -not -path "*/.git/*" \
-            -not -path "*/dist/*" \
-            -not -path "*/scripts/rebrand.sh" \
-            -not -name "*.woff*" \
-            -not -name "*.ttf" \
-            -not -name "*.png" \
-            -not -name "*.jpg" \
-            -not -name "*.ico" \
-            -not -name "*.webp" \
-            -not -name "*.svg" \
-            -print0 2>/dev/null | \
-        while IFS= read -r -d '' file; do
-            if file "$file" | grep -q "text\|JSON\|ASCII"; then
-                if grep -q "$pattern" "$file" 2>/dev/null; then
-                    sed -i "s/$pattern/$replacement/g" "$file"
-                    echo "  Modified: ${file#$PROJECT_ROOT/}"
-                fi
+# Replace in documentation files (all occurrences)
+replace_in_docs() {
+    echo -e "${GREEN}[1/2] Replacing in documentation files...${NC}"
+
+    find "$PROJECT_ROOT" -type f \
+        \( -name "*.md" -o -name "*.html" -o -name "*.txt" \) \
+        -not -path "*/node_modules/*" \
+        -not -path "*/.git/*" \
+        -not -path "*/dist/*" \
+        -print0 2>/dev/null | \
+    while IFS= read -r -d '' file; do
+        if grep -q "Zerobyte\|zerobyte" "$file" 2>/dev/null; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+                echo "  Would modify: ${file#$PROJECT_ROOT/}"
+            else
+                # Replace display name (Zerobyte -> C3i Backup ONE)
+                sed -i "s/Zerobyte/C3i Backup ONE/g" "$file"
+                echo "  Modified: ${file#$PROJECT_ROOT/}"
             fi
-        done
-    fi
+        fi
+    done
     echo ""
 }
 
-# Perform replacements in order (most specific first to avoid double replacements)
+# Replace only in quoted strings within code files
+replace_in_code_strings() {
+    echo -e "${GREEN}[2/2] Replacing in code string literals...${NC}"
 
-# 1. ZEROBYTE (uppercase - typically for environment variables)
-#    Using underscores since env vars typically use underscores
-do_replace "ZEROBYTE" "C3I_BACKUP_ONE" "uppercase/env vars"
+    find "$PROJECT_ROOT" -type f \
+        \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
+        -not -path "*/node_modules/*" \
+        -not -path "*/.git/*" \
+        -not -path "*/dist/*" \
+        -not -path "*/scripts/rebrand.sh" \
+        -print0 2>/dev/null | \
+    while IFS= read -r -d '' file; do
+        if should_skip_file "$file"; then
+            continue
+        fi
 
-# 2. Zerobyte (title case - display name)
-do_replace "Zerobyte" "C3i Backup ONE" "title case/display"
+        # Check if file contains Zerobyte in a string literal
+        if grep -qE "['\"\`].*Zerobyte.*['\"\`]" "$file" 2>/dev/null; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+                echo "  Would modify: ${file#$PROJECT_ROOT/}"
+                # Show which lines would be changed
+                grep -n -E "['\"\`].*Zerobyte.*['\"\`]" "$file" 2>/dev/null | head -5 | sed 's/^/    /'
+            else
+                # Replace Zerobyte only within quoted strings
+                # Match strings containing Zerobyte and replace just the brand name
+                # Using perl for better regex support with lookahead/lookbehind
+                perl -i -pe '
+                    # Replace in double-quoted strings
+                    s/(".*?)Zerobyte(.*?")/$1C3i Backup ONE$2/g;
+                    # Replace in single-quoted strings
+                    s/('"'"'.*?)Zerobyte(.*?'"'"')/$1C3i Backup ONE$2/g;
+                    # Replace in template literals
+                    s/(`.*?)Zerobyte(.*?`)/$1C3i Backup ONE$2/g;
+                ' "$file"
+                echo "  Modified: ${file#$PROJECT_ROOT/}"
+            fi
+        fi
+    done
+    echo ""
+}
 
-# 3. zerobyte (lowercase - identifiers, package names, URLs)
-do_replace "zerobyte" "c3i-backup-one" "lowercase/identifiers"
+# Run the replacements
+replace_in_docs
+replace_in_code_strings
 
 echo -e "${GREEN}Done!${NC}"
 
@@ -131,9 +168,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
     echo -e "${YELLOW}This was a dry run. Run without --dry-run to apply changes.${NC}"
 else
     echo ""
-    echo -e "${YELLOW}Note: You may need to manually update:${NC}"
-    echo "  - File names containing 'zerobyte' (if desired)"
-    echo "  - Binary artifacts and images"
-    echo "  - External references (GitHub repo name, Docker Hub, etc.)"
-    echo "  - Run 'bun install' to update lockfile"
+    echo -e "${YELLOW}Note:${NC}"
+    echo "  Code identifiers, package names, and config files were NOT modified."
+    echo "  Only user-visible strings have been updated."
 fi

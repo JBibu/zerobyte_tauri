@@ -1,6 +1,6 @@
 # Secret placeholders (env:// and file://) + Docker secrets
 
-Zerobyte supports **secret placeholders** in many configuration fields (repositories, volumes, notifications).
+C3i Backup ONE supports **secret placeholders** in many configuration fields (repositories, volumes, notifications).
 Instead of storing raw secrets in the database, you can store a reference that gets resolved at runtime.
 
 Supported formats:
@@ -8,7 +8,7 @@ Supported formats:
 - `env://VAR_NAME` → reads `process.env.VAR_NAME`
 - `file://name` → reads `/run/secrets/name` (Docker Compose / Docker secrets)
 
-This example shows how to run Zerobyte with:
+This example shows how to run C3i Backup ONE with:
 
 - an environment variable you can reference via `env://...`
 - a Docker secret you can reference via `file://...`
@@ -35,15 +35,15 @@ cp .env.example .env
 printf "your-smb-password" > smb-password.txt
 ```
 
-3. Start Zerobyte:
+3. Start C3i Backup ONE:
 
 ```bash
 docker compose up -d
 ```
 
-## Using placeholders in Zerobyte
+## Using placeholders in C3i Backup ONE
 
-You can now use the placeholders for example in these Zerobyte configuration fields:
+You can now use the placeholders for example in these C3i Backup ONE configuration fields:
 
 | UI section | Type | Field | Example value |
 | --- | --- | --- | --- |

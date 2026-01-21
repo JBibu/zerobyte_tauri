@@ -16,7 +16,7 @@ export const clientMiddleware = [authMiddleware];
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Download Recovery Key" },
+		{ title: "C3i Backup ONE - Download Recovery Key" },
 		{
 			name: "description",
 			content: "Download your backup recovery key to ensure you can restore your data.",

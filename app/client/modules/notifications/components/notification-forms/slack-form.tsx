@@ -48,7 +48,7 @@ export const SlackForm = ({ form }: Props) => {
 					<FormItem>
 						<FormLabel>Bot Username (Optional)</FormLabel>
 						<FormControl>
-							<Input {...field} placeholder="Zerobyte" />
+							<Input {...field} placeholder="C3i Backup ONE" />
 						</FormControl>
 						<FormMessage />
 					</FormItem>

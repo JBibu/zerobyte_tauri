@@ -31,7 +31,7 @@ export const handle = {
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Volumes" },
+		{ title: "C3i Backup ONE - Volumes" },
 		{
 			name: "description",
 			content: "Create, manage, monitor, and automate your Docker volumes with ease.",

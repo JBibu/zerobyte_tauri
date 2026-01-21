@@ -30,7 +30,7 @@ export const handle = {
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Backup Jobs" },
+		{ title: "C3i Backup ONE - Backup Jobs" },
 		{
 			name: "description",
 			content: "Automate volume backups with scheduled jobs and retention policies.",

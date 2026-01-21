@@ -1,6 +1,6 @@
 # Basic Docker Compose
 
-Minimal "standard" deployment for Zerobyte.
+Minimal "standard" deployment for C3i Backup ONE.
 
 This setup enables remote mount backends (NFS/SMB/WebDAV) from inside the container by granting the required capability and FUSE device.
 

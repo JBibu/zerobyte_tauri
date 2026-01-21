@@ -12,7 +12,7 @@ export function AuthLayout({ title, description, children }: AuthLayoutProps) {
 			<div className="flex flex-1 items-center justify-center bg-background p-8">
 				<div className="w-full max-w-md space-y-8">
 					<div className="flex items-center gap-3">
-						<img src="/images/zerobyte.png" alt="Zerobyte Logo" className="h-5 w-5 object-contain" />
+						<img src="/images/zerobyte.png" alt="C3i Backup ONE Logo" className="h-5 w-5 object-contain" />
 						<span className="text-lg font-semibold">Zerobyte</span>
 					</div>
 

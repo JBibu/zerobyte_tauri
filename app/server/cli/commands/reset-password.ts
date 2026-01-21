@@ -39,7 +39,7 @@ export const resetPasswordCommand = new Command("reset-password")
 	.option("-u, --username <username>", "Username of the account")
 	.option("-p, --password <password>", "New password for the account")
 	.action(async (options) => {
-		console.info("\n🔐 Zerobyte Password Reset\n");
+		console.info("\n🔐 C3i Backup ONE Password Reset\n");
 
 		let username = options.username;
 		let newPassword = options.password;

@@ -5,7 +5,7 @@ import { resetPasswordCommand } from "./commands/reset-password";
 
 const program = new Command();
 
-program.name("zerobyte").description("Zerobyte CLI - Backup automation tool built on top of Restic").version("1.0.0");
+program.name("zerobyte").description("C3i Backup ONE CLI - Backup automation tool built on top of Restic").version("1.0.0");
 program.addCommand(resetPasswordCommand);
 program.addCommand(disable2FACommand);
 program.addCommand(changeUsernameCommand);

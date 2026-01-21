@@ -14,7 +14,7 @@ export const handle = {
 
 export function meta({ params }: Route.MetaArgs) {
 	return [
-		{ title: `Zerobyte - Restore Snapshot ${params.snapshotId}` },
+		{ title: `C3i Backup ONE - Restore Snapshot ${params.snapshotId}` },
 		{
 			name: "description",
 			content: "Restore files from a backup snapshot.",

@@ -19,10 +19,10 @@ export const clientMiddleware = [authMiddleware];
 
 export function meta(_: Route.MetaArgs) {
 	return [
-		{ title: "Zerobyte - Login" },
+		{ title: "C3i Backup ONE - Login" },
 		{
 			name: "description",
-			content: "Sign in to your Zerobyte account.",
+			content: "Sign in to your C3i Backup ONE account.",
 		},
 	];
 }

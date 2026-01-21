@@ -1,6 +1,6 @@
 # Bind-mount a local directory
 
-This example shows how to back up a host directory by bind-mounting it into the Zerobyte container.
+This example shows how to back up a host directory by bind-mounting it into the C3i Backup ONE container.
 
 It uses the simplified setup (no remote mounts).
 
@@ -24,7 +24,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-## Use in Zerobyte
+## Use in C3i Backup ONE
 
 - Create a new volume of type **Directory**
 - Select the mounted path shown in the compose file: `/mydata`

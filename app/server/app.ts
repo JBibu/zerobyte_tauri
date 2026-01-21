@@ -26,7 +26,7 @@ export const generalDescriptor = (app: Hono) =>
 	openAPIRouteHandler(app, {
 		documentation: {
 			info: {
-				title: "Zerobyte API",
+				title: "C3i Backup ONE API",
 				version: "1.0.0",
 				description: "API for managing volumes",
 			},
@@ -35,8 +35,8 @@ export const generalDescriptor = (app: Hono) =>
 	});
 
 export const scalarDescriptor = Scalar({
-	title: "Zerobyte API Docs",
-	pageTitle: "Zerobyte API Docs",
+	title: "C3i Backup ONE API Docs",
+	pageTitle: "C3i Backup ONE API Docs",
 	url: "/api/v1/openapi.json",
 });
 
