@@ -357,7 +357,15 @@ const listFiles = async (name: string, subPath?: string) => {
 			path: subPath || "/",
 		};
 	} catch (error) {
-		throw new InternalServerError(`Failed to list files: ${toMessage(error)}`);
+		// Handle permission denied and other access errors gracefully
+		const errorMessage = toMessage(error);
+		if (errorMessage.includes("EPERM") || errorMessage.includes("EACCES") || errorMessage.includes("denied")) {
+			return {
+				files: [],
+				path: subPath || "/",
+			};
+		}
+		throw new InternalServerError(`Failed to list files: ${errorMessage}`);
 	}
 };
 
