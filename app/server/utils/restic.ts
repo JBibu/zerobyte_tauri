@@ -83,7 +83,7 @@ export const buildRepoUrl = (config: RepositoryConfig): string => {
 				return config.path;
 			}
 
-			return config.path ? `${config.path}/${config.name}` : `${REPOSITORY_BASE}/${config.name}`;
+			return path.join(config.path || REPOSITORY_BASE, config.name);
 		case "s3":
 			return `s3:${config.endpoint}/${config.bucket}`;
 		case "r2": {

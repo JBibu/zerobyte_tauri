@@ -30,5 +30,5 @@ export const getVolumePath = (volume: Volume) => {
 		return normalizeDirectoryPath(volume.config.path);
 	}
 
-	return `${VOLUME_MOUNT_BASE}/${volume.shortId}/_data`;
+	return path.join(VOLUME_MOUNT_BASE, volume.shortId, "_data");
 };
