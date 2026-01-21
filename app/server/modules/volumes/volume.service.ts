@@ -309,11 +309,18 @@ const listFiles = async (name: string, subPath?: string) => {
 
 	// For directory volumes, use the configured path directly
 	const volumePath = getVolumePath(volume);
+	// Normalize volume path for consistent comparison (handles Windows trailing slashes)
+	const normalizedVolumePath = path.normalize(volumePath);
 
-	const requestedPath = subPath ? path.join(volumePath, subPath) : volumePath;
+	const requestedPath = subPath ? path.join(normalizedVolumePath, subPath) : normalizedVolumePath;
 
 	const normalizedPath = path.normalize(requestedPath);
-	if (!normalizedPath.startsWith(volumePath)) {
+
+	// Log paths for debugging
+	logger.info(`[listFiles] volumePath: ${volumePath}, normalizedVolumePath: ${normalizedVolumePath}, requestedPath: ${requestedPath}, normalizedPath: ${normalizedPath}`);
+
+	if (!normalizedPath.startsWith(normalizedVolumePath)) {
+		logger.warn(`[listFiles] Path validation failed: ${normalizedPath} does not start with ${normalizedVolumePath}`);
 		throw new InternalServerError("Invalid path");
 	}
 
@@ -324,7 +331,7 @@ const listFiles = async (name: string, subPath?: string) => {
 			entries.map(async (entry) => {
 				const fullPath = path.join(normalizedPath, entry.name);
 				// Normalize to forward slashes for consistent API response
-				const relativePath = path.relative(volumePath, fullPath).replace(/\\/g, "/");
+				const relativePath = path.relative(normalizedVolumePath, fullPath).replace(/\\/g, "/");
 
 				try {
 					const stats = await fs.stat(fullPath);
