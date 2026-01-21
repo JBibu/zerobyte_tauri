@@ -42,6 +42,7 @@
     },
     "externalBin": [
       "binaries/zerobyte-server",
+      "binaries/zerobyte-service",
       "binaries/restic",
       "binaries/rclone",
       "binaries/shoutrrr"

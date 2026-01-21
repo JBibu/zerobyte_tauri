@@ -1,75 +1,79 @@
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 #[cfg(target_os = "windows")]
-use tracing::info;
+use tracing::{info, warn};
 
+/// Internal struct for service status details
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceStatus {
+pub struct ServiceStatusInfo {
     pub installed: bool,
     pub running: bool,
     pub start_type: Option<String>,
 }
 
+/// Query the current service status string
+#[cfg(target_os = "windows")]
+fn query_service_status() -> String {
+    use std::process::Command;
+
+    let output = match Command::new("sc").args(["query", "ZerobyteService"]).output() {
+        Ok(out) => out,
+        Err(_) => return "unknown".to_string(),
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Check if service exists (error 1060 = service not found)
+    if stderr.contains("1060") || stdout.contains("1060") {
+        return "not_installed".to_string();
+    }
+
+    if stdout.contains("RUNNING") {
+        "running".to_string()
+    } else if stdout.contains("STOPPED") {
+        "stopped".to_string()
+    } else {
+        "unknown".to_string()
+    }
+}
+
+/// Wait for the service to reach an expected status, with polling
+#[cfg(target_os = "windows")]
+async fn wait_for_status(expected: &str, timeout_secs: u64) -> bool {
+    let start = std::time::Instant::now();
+    let timeout = Duration::from_secs(timeout_secs);
+
+    while start.elapsed() < timeout {
+        let status = query_service_status();
+        if status == expected {
+            return true;
+        }
+        tokio::time::sleep(Duration::from_millis(500)).await;
+    }
+    false
+}
+
+/// Clean up a temporary batch file
+#[cfg(target_os = "windows")]
+fn cleanup_temp_file(path: &std::path::Path) {
+    if let Err(e) = std::fs::remove_file(path) {
+        warn!("Failed to clean up temp file {}: {}", path.display(), e);
+    }
+}
+
 /// Get the current status of the Windows Service
+/// Returns: "running", "stopped", "not_installed", or "unknown"
 #[tauri::command]
-pub async fn get_service_status() -> Result<ServiceStatus, String> {
+pub async fn get_service_status() -> Result<String, String> {
     #[cfg(target_os = "windows")]
     {
-        use std::process::Command;
-
-        // Query service status using sc command
-        let output = Command::new("sc")
-            .args(["query", "ZerobyteService"])
-            .output()
-            .map_err(|e| format!("Failed to query service: {}", e))?;
-
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-
-        // Check if service exists
-        if stderr.contains("1060") || stdout.contains("1060") {
-            return Ok(ServiceStatus {
-                installed: false,
-                running: false,
-                start_type: None,
-            });
-        }
-
-        let running = stdout.contains("RUNNING");
-
-        // Query start type
-        let qc_output = Command::new("sc")
-            .args(["qc", "ZerobyteService"])
-            .output()
-            .ok();
-
-        let start_type = qc_output.and_then(|out| {
-            let stdout = String::from_utf8_lossy(&out.stdout);
-            if stdout.contains("AUTO_START") {
-                Some("automatic".to_string())
-            } else if stdout.contains("DEMAND_START") {
-                Some("manual".to_string())
-            } else if stdout.contains("DISABLED") {
-                Some("disabled".to_string())
-            } else {
-                None
-            }
-        });
-
-        Ok(ServiceStatus {
-            installed: true,
-            running,
-            start_type,
-        })
+        Ok(query_service_status())
     }
 
     #[cfg(not(target_os = "windows"))]
     {
-        Ok(ServiceStatus {
-            installed: false,
-            running: false,
-            start_type: None,
-        })
+        Ok("not_installed".to_string())
     }
 }
 
@@ -101,22 +105,34 @@ pub async fn install_service(app: tauri::AppHandle) -> Result<(), String> {
             .resource_dir()
             .map_err(|e| format!("Failed to get resource directory: {}", e))?;
 
-        let service_exe = exe_dir.join("binaries").join("zerobyte-service.exe");
+        // Try multiple possible locations for the service executable
+        let possible_paths = [
+            exe_dir.join("binaries").join("zerobyte-service.exe"),
+            exe_dir.join("zerobyte-service.exe"),
+            // Tauri may use the target triple suffix
+            exe_dir.join("binaries").join("zerobyte-service-x86_64-pc-windows-msvc.exe"),
+        ];
 
-        if !service_exe.exists() {
-            return Err(format!(
-                "Service executable not found at: {}",
-                service_exe.display()
-            ));
-        }
+        let service_exe = possible_paths
+            .iter()
+            .find(|p| p.exists())
+            .ok_or_else(|| {
+                format!(
+                    "Service executable not found. Searched: {:?}",
+                    possible_paths.iter().map(|p| p.display().to_string()).collect::<Vec<_>>()
+                )
+            })?
+            .clone();
 
         info!("Installing service from: {}", service_exe.display());
 
         // Create a batch script to install the service with elevation
+        // Configure service recovery: restart on failure after 5 seconds
         let script = format!(
             r#"@echo off
 sc create ZerobyteService binPath= "{}" start= auto DisplayName= "Zerobyte Backup Service"
 sc description ZerobyteService "Background backup service for Zerobyte"
+sc failure ZerobyteService reset= 86400 actions= restart/5000/restart/5000/restart/5000
 sc start ZerobyteService
 "#,
             service_exe.display()
@@ -131,8 +147,29 @@ sc start ZerobyteService
         // Run the script with elevation using ShellExecuteW with runas verb
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service installation initiated");
-        Ok(())
+        info!("Service installation initiated, waiting for completion...");
+
+        // Wait for the service to be installed and running
+        let success = wait_for_status("running", 15).await;
+
+        // Clean up the temp file
+        cleanup_temp_file(&script_path);
+
+        if success {
+            info!("Service installed and started successfully");
+            Ok(())
+        } else {
+            // Check if it's at least installed but not running
+            let status = query_service_status();
+            if status == "stopped" {
+                info!("Service installed but not running");
+                Ok(())
+            } else if status == "not_installed" {
+                Err("Service installation failed or was cancelled".to_string())
+            } else {
+                Ok(()) // Service exists in some state, consider it success
+            }
+        }
     }
 
     #[cfg(not(target_os = "windows"))]
@@ -165,8 +202,25 @@ sc delete ZerobyteService
         // Run the script with elevation
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service uninstallation initiated");
-        Ok(())
+        info!("Service uninstallation initiated, waiting for completion...");
+
+        // Wait for the service to be uninstalled
+        let success = wait_for_status("not_installed", 15).await;
+
+        // Clean up the temp file
+        cleanup_temp_file(&script_path);
+
+        if success {
+            info!("Service uninstalled successfully");
+            Ok(())
+        } else {
+            let status = query_service_status();
+            if status == "not_installed" {
+                Ok(())
+            } else {
+                Err("Service uninstallation failed or was cancelled".to_string())
+            }
+        }
     }
 
     #[cfg(not(target_os = "windows"))]
@@ -193,8 +247,20 @@ sc start ZerobyteService
 
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service start initiated");
-        Ok(())
+        info!("Service start initiated, waiting for completion...");
+
+        // Wait for the service to start
+        let success = wait_for_status("running", 15).await;
+
+        // Clean up the temp file
+        cleanup_temp_file(&script_path);
+
+        if success {
+            info!("Service started successfully");
+            Ok(())
+        } else {
+            Err("Service failed to start or was cancelled".to_string())
+        }
     }
 
     #[cfg(not(target_os = "windows"))]
@@ -221,8 +287,20 @@ sc stop ZerobyteService
 
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service stop initiated");
-        Ok(())
+        info!("Service stop initiated, waiting for completion...");
+
+        // Wait for the service to stop
+        let success = wait_for_status("stopped", 15).await;
+
+        // Clean up the temp file
+        cleanup_temp_file(&script_path);
+
+        if success {
+            info!("Service stopped successfully");
+            Ok(())
+        } else {
+            Err("Service failed to stop or was cancelled".to_string())
+        }
     }
 
     #[cfg(not(target_os = "windows"))]
