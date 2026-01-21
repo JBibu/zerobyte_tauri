@@ -381,7 +381,7 @@ const execAsync = promisify(exec);
 const getFilesystemRoots = async (): Promise<string[]> => {
 	if (process.platform === "win32") {
 		try {
-			const { stdout } = await execAsync("wmic logicaldisk get name", { encoding: "utf8" });
+			const { stdout } = await execAsync("wmic logicaldisk get name", { encoding: "utf8", windowsHide: true });
 			const lines = stdout.split("\n").map((line) => line.trim()).filter(Boolean);
 			// Skip the header "Name" and get the drive letters
 			const drives = lines.slice(1).filter((line) => /^[A-Z]:$/i.test(line)).map((drive) => `${drive}\\`);

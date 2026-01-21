@@ -94,6 +94,7 @@ pub async fn install_service(app: tauri::AppHandle) -> Result<(), String> {
     {
         use std::env;
         use tauri::Manager;
+        use tokio::time::{sleep, Duration};
 
         // Get the path to the service executable
         let exe_dir = app
@@ -112,18 +113,31 @@ pub async fn install_service(app: tauri::AppHandle) -> Result<(), String> {
 
         info!("Installing service from: {}", service_exe.display());
 
+        let temp_dir = env::temp_dir();
+        let log_path = temp_dir.join("zerobyte_service_install.log");
+
+        // Remove old log file if it exists
+        let _ = std::fs::remove_file(&log_path);
+
         // Create a batch script to install the service with elevation
+        // Redirect all output to a log file for error diagnosis
         let script = format!(
             r#"@echo off
-sc create ZerobyteService binPath= "{}" start= auto DisplayName= "C3i Backup ONE Service"
-sc description ZerobyteService "Background backup service for C3i Backup ONE"
-sc start ZerobyteService
+echo Installing service... > "{log}"
+sc create ZerobyteService binPath= "{exe}" start= auto DisplayName= "C3i Backup ONE Service" >> "{log}" 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to create service >> "{log}"
+    exit /b %errorlevel%
+)
+sc description ZerobyteService "Background backup service for C3i Backup ONE" >> "{log}" 2>&1
+sc start ZerobyteService >> "{log}" 2>&1
+echo Installation complete >> "{log}"
 "#,
-            service_exe.display()
+            exe = service_exe.display(),
+            log = log_path.display()
         );
 
         // Write the script to a temp file
-        let temp_dir = env::temp_dir();
         let script_path = temp_dir.join("zerobyte_install_service.bat");
         std::fs::write(&script_path, script)
             .map_err(|e| format!("Failed to write install script: {}", e))?;
@@ -131,7 +145,31 @@ sc start ZerobyteService
         // Run the script with elevation using ShellExecuteW with runas verb
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service installation initiated");
+        info!("Service installation initiated, waiting for completion...");
+
+        // Wait for the script to complete (check for log file updates)
+        for _ in 0..10 {
+            sleep(Duration::from_secs(1)).await;
+            if let Ok(content) = std::fs::read_to_string(&log_path) {
+                if content.contains("Installation complete") || content.contains("ERROR:") {
+                    break;
+                }
+            }
+        }
+
+        // Check the service status to verify installation
+        let status = get_service_status().await?;
+
+        if !status.installed {
+            let error_details = std::fs::read_to_string(&log_path)
+                .unwrap_or_else(|_| "No log file found".to_string());
+            return Err(format!(
+                "Service installation failed. Details:\n{}",
+                error_details
+            ));
+        }
+
+        info!("Service installed successfully");
         Ok(())
     }
 
@@ -148,16 +186,32 @@ pub async fn uninstall_service() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
+        use tokio::time::{sleep, Duration};
+
+        let temp_dir = env::temp_dir();
+        let log_path = temp_dir.join("zerobyte_service_uninstall.log");
+
+        // Remove old log file if it exists
+        let _ = std::fs::remove_file(&log_path);
 
         // Create a batch script to uninstall the service with elevation
-        let script = r#"@echo off
-sc stop ZerobyteService
+        let script = format!(
+            r#"@echo off
+echo Stopping service... > "{log}"
+sc stop ZerobyteService >> "{log}" 2>&1
 timeout /t 3 /nobreak >nul
-sc delete ZerobyteService
-"#;
+echo Deleting service... >> "{log}"
+sc delete ZerobyteService >> "{log}" 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to delete service >> "{log}"
+    exit /b %errorlevel%
+)
+echo Uninstallation complete >> "{log}"
+"#,
+            log = log_path.display()
+        );
 
         // Write the script to a temp file
-        let temp_dir = env::temp_dir();
         let script_path = temp_dir.join("zerobyte_uninstall_service.bat");
         std::fs::write(&script_path, script)
             .map_err(|e| format!("Failed to write uninstall script: {}", e))?;
@@ -165,7 +219,31 @@ sc delete ZerobyteService
         // Run the script with elevation
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service uninstallation initiated");
+        info!("Service uninstallation initiated, waiting for completion...");
+
+        // Wait for the script to complete
+        for _ in 0..10 {
+            sleep(Duration::from_secs(1)).await;
+            if let Ok(content) = std::fs::read_to_string(&log_path) {
+                if content.contains("Uninstallation complete") || content.contains("ERROR:") {
+                    break;
+                }
+            }
+        }
+
+        // Check the service status to verify uninstallation
+        let status = get_service_status().await?;
+
+        if status.installed {
+            let error_details = std::fs::read_to_string(&log_path)
+                .unwrap_or_else(|_| "No log file found".to_string());
+            return Err(format!(
+                "Service uninstallation failed. Details:\n{}",
+                error_details
+            ));
+        }
+
+        info!("Service uninstalled successfully");
         Ok(())
     }
 
@@ -181,19 +259,58 @@ pub async fn start_service() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
-
-        let script = r#"@echo off
-sc start ZerobyteService
-"#;
+        use tokio::time::{sleep, Duration};
 
         let temp_dir = env::temp_dir();
+        let log_path = temp_dir.join("zerobyte_service_start.log");
+
+        // Remove old log file if it exists
+        let _ = std::fs::remove_file(&log_path);
+
+        let script = format!(
+            r#"@echo off
+echo Starting service... > "{log}"
+sc start ZerobyteService >> "{log}" 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to start service >> "{log}"
+    exit /b %errorlevel%
+)
+echo Service started >> "{log}"
+"#,
+            log = log_path.display()
+        );
+
         let script_path = temp_dir.join("zerobyte_start_service.bat");
         std::fs::write(&script_path, script)
             .map_err(|e| format!("Failed to write start script: {}", e))?;
 
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service start initiated");
+        info!("Service start initiated, waiting for completion...");
+
+        // Wait for the script to complete
+        for _ in 0..10 {
+            sleep(Duration::from_secs(1)).await;
+            if let Ok(content) = std::fs::read_to_string(&log_path) {
+                if content.contains("Service started") || content.contains("ERROR:") {
+                    break;
+                }
+            }
+        }
+
+        // Check if the service is running
+        let status = get_service_status().await?;
+
+        if !status.running {
+            let error_details = std::fs::read_to_string(&log_path)
+                .unwrap_or_else(|_| "No log file found".to_string());
+            return Err(format!(
+                "Failed to start service. Details:\n{}",
+                error_details
+            ));
+        }
+
+        info!("Service started successfully");
         Ok(())
     }
 
@@ -209,19 +326,58 @@ pub async fn stop_service() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
-
-        let script = r#"@echo off
-sc stop ZerobyteService
-"#;
+        use tokio::time::{sleep, Duration};
 
         let temp_dir = env::temp_dir();
+        let log_path = temp_dir.join("zerobyte_service_stop.log");
+
+        // Remove old log file if it exists
+        let _ = std::fs::remove_file(&log_path);
+
+        let script = format!(
+            r#"@echo off
+echo Stopping service... > "{log}"
+sc stop ZerobyteService >> "{log}" 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Failed to stop service >> "{log}"
+    exit /b %errorlevel%
+)
+echo Service stopped >> "{log}"
+"#,
+            log = log_path.display()
+        );
+
         let script_path = temp_dir.join("zerobyte_stop_service.bat");
         std::fs::write(&script_path, script)
             .map_err(|e| format!("Failed to write stop script: {}", e))?;
 
         run_elevated(&script_path.to_string_lossy())?;
 
-        info!("Service stop initiated");
+        info!("Service stop initiated, waiting for completion...");
+
+        // Wait for the script to complete
+        for _ in 0..10 {
+            sleep(Duration::from_secs(1)).await;
+            if let Ok(content) = std::fs::read_to_string(&log_path) {
+                if content.contains("Service stopped") || content.contains("ERROR:") {
+                    break;
+                }
+            }
+        }
+
+        // Check if the service is stopped
+        let status = get_service_status().await?;
+
+        if status.running {
+            let error_details = std::fs::read_to_string(&log_path)
+                .unwrap_or_else(|_| "No log file found".to_string());
+            return Err(format!(
+                "Failed to stop service. Details:\n{}",
+                error_details
+            ));
+        }
+
+        info!("Service stopped successfully");
         Ok(())
     }
 
@@ -240,7 +396,7 @@ fn run_elevated(command: &str) -> Result<(), String> {
 
     use windows::core::PCWSTR;
     use windows::Win32::UI::Shell::ShellExecuteW;
-    use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+    use windows::Win32::UI::WindowsAndMessaging::SW_HIDE;
 
     fn to_wide(s: &str) -> Vec<u16> {
         OsStr::new(s).encode_wide().chain(once(0)).collect()
@@ -257,7 +413,7 @@ fn run_elevated(command: &str) -> Result<(), String> {
             PCWSTR(file.as_ptr()),
             PCWSTR(parameters.as_ptr()),
             PCWSTR::null(),
-            SW_SHOWNORMAL,
+            SW_HIDE,
         );
 
         // ShellExecuteW returns a value > 32 on success
