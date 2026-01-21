@@ -37,7 +37,7 @@ export function WindowsServiceSection() {
 			} else {
 				setServiceStatus("stopped");
 			}
-		} catch (error) {
+		} catch {
 			setServiceStatus("unknown");
 		} finally {
 			setIsLoading(false);

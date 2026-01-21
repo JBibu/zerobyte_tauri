@@ -28,11 +28,11 @@ export function Titlebar() {
 		const appWindow = window.__TAURI__.window.getCurrentWindow();
 
 		// Initialize maximize state
-		appWindow.isMaximized().then(setIsMaximized);
+		void appWindow.isMaximized().then(setIsMaximized);
 
 		// Listen for resize events to track maximize state
 		let unlisten: (() => void) | undefined;
-		appWindow.onResized(async () => {
+		void appWindow.onResized(async () => {
 			const maximized = await appWindow.isMaximized();
 			setIsMaximized(maximized);
 		}).then((fn) => {
@@ -82,7 +82,7 @@ export function Titlebar() {
 				data-tauri-drag-region
 				className="flex-1 h-full flex items-center px-4 cursor-move"
 			>
-				<span className="text-sm font-medium text-foreground">C3i Backup ONE</span>
+				<span className="text-sm font-medium text-foreground">C3i Servicios Informáticos</span>
 			</div>
 
 			{/* Window Controls */}

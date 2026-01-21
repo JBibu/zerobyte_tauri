@@ -1,7 +1,7 @@
 //! C3i Backup ONE Windows Service
 //!
 //! This binary runs as a Windows Service and manages the zerobyte-server process.
-//! It uses port 4097 (separate from desktop's 4096) and stores data in %PROGRAMDATA%\C3i Backup ONE.
+//! It uses a separate port from desktop mode and stores data in %PROGRAMDATA%\C3i Backup ONE.
 //!
 //! Note: This service uses println!/eprintln! for logging as output is captured by Windows Service
 //! infrastructure and written to service log files. This is intentional and appropriate for a
@@ -16,6 +16,9 @@ mod windows_service {
     use std::sync::mpsc::{self, Receiver};
     use std::thread;
     use std::time::Duration;
+
+    /// Port used for Windows Service mode
+    const SERVICE_PORT: u16 = 4097;
 
     use windows_service::service::{
         ServiceControl, ServiceControlAccept, ServiceExitCode, ServiceState, ServiceStatus,
@@ -145,7 +148,7 @@ mod windows_service {
         // Set environment variables for service mode
         let child = Command::new(server_exe)
             .env("ZEROBYTE_SERVICE_MODE", "1")
-            .env("PORT", "4097")
+            .env("PORT", SERVICE_PORT.to_string())
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .spawn()?;
@@ -155,8 +158,9 @@ mod windows_service {
             .timeout(Duration::from_secs(2))
             .build()?;
 
+        let url = format!("http://localhost:{}/healthcheck", SERVICE_PORT);
         for attempt in 1..=30 {
-            match client.get("http://localhost:4097/healthcheck").send() {
+            match client.get(&url).send() {
                 Ok(response) if response.status().is_success() => {
                     println!("Server is ready (attempt {})", attempt);
                     return Ok(child);
@@ -208,7 +212,8 @@ mod windows_service {
             .build();
 
         if let Ok(client) = client {
-            let _ = client.post("http://localhost:4097/api/shutdown").send();
+            let url = format!("http://localhost:{}/api/shutdown", SERVICE_PORT);
+            let _ = client.post(&url).send();
             // Wait for graceful shutdown
             thread::sleep(Duration::from_secs(3));
         }

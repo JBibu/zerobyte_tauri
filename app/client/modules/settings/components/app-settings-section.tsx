@@ -21,7 +21,7 @@ export function AppSettingsSection() {
 			const { isEnabled } = await import("@tauri-apps/plugin-autostart");
 			const enabled = await isEnabled();
 			setAutostartEnabled(enabled);
-		} catch (error) {
+		} catch {
 			// Silently fail - autostart status will remain false
 		} finally {
 			setIsLoadingAutostart(false);

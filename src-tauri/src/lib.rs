@@ -10,6 +10,12 @@ use tauri_plugin_shell::ShellExt;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 
+/// Port used for desktop sidecar mode
+const DESKTOP_PORT: u16 = 4096;
+
+/// Port used for Windows Service mode
+const SERVICE_PORT: u16 = 4097;
+
 /// Holds the state of the sidecar process
 pub struct AppState {
     /// The sidecar process handle (None if using service mode)
@@ -25,19 +31,20 @@ impl Default for AppState {
         Self {
             sidecar_handle: Arc::new(Mutex::new(None)),
             using_service: AtomicBool::new(false),
-            backend_port: AtomicU16::new(4096),
+            backend_port: AtomicU16::new(DESKTOP_PORT),
         }
     }
 }
 
-/// Check if the Windows Service is running by trying to connect to port 4097
+/// Check if the Windows Service is running by trying to connect to the service port
 async fn is_service_running() -> bool {
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(2))
         .build()
         .unwrap_or_default();
 
-    match client.get("http://localhost:4097/healthcheck").send().await {
+    let url = format!("http://localhost:{}/healthcheck", SERVICE_PORT);
+    match client.get(&url).send().await {
         Ok(response) => response.status().is_success(),
         Err(_) => false,
     }
@@ -107,24 +114,24 @@ pub async fn start_sidecar(
 ) -> Result<u16, Box<dyn std::error::Error + Send + Sync>> {
     // First, check if the Windows Service is running
     if is_service_running().await {
-        info!("Windows Service detected on port 4097, connecting to service instead of starting sidecar");
+        info!("Windows Service detected on port {}, connecting to service instead of starting sidecar", SERVICE_PORT);
         state.using_service.store(true, Ordering::SeqCst);
-        state.backend_port.store(4097, Ordering::SeqCst);
-        return Ok(4097);
+        state.backend_port.store(SERVICE_PORT, Ordering::SeqCst);
+        return Ok(SERVICE_PORT);
     }
 
     // In dev mode only, check if the Vite dev server is already running
     #[cfg(debug_assertions)]
-    if wait_for_server(4096, 30).await {
-        info!("Development server already running on port 4096, skipping sidecar");
-        return Ok(4096);
+    if wait_for_server(DESKTOP_PORT, 30).await {
+        info!("Development server already running on port {}, skipping sidecar", DESKTOP_PORT);
+        return Ok(DESKTOP_PORT);
     }
 
     // In release mode, quick check if server is already running (e.g., from previous instance)
     #[cfg(not(debug_assertions))]
-    if wait_for_server(4096, 2).await {
-        info!("Server already running on port 4096, skipping sidecar");
-        return Ok(4096);
+    if wait_for_server(DESKTOP_PORT, 2).await {
+        info!("Server already running on port {}, skipping sidecar", DESKTOP_PORT);
+        return Ok(DESKTOP_PORT);
     }
 
     let shell = app.shell();
@@ -143,7 +150,7 @@ pub async fn start_sidecar(
         .sidecar("zerobyte-server")?
         .current_dir(resource_dir);
 
-    info!("Starting zerobyte-server sidecar on port 4096...");
+    info!("Starting zerobyte-server sidecar on port {}...", DESKTOP_PORT);
 
     // Spawn the sidecar process
     let (mut rx, child) = sidecar_command.spawn()?;
@@ -187,12 +194,12 @@ pub async fn start_sidecar(
     });
 
     // Wait for the server to be ready
-    if !wait_for_server(4096, 30).await {
+    if !wait_for_server(DESKTOP_PORT, 30).await {
         return Err("Failed to start zerobyte-server".into());
     }
 
     info!("Sidecar server started successfully");
-    Ok(4096)
+    Ok(DESKTOP_PORT)
 }
 
 /// Stop the sidecar server process gracefully

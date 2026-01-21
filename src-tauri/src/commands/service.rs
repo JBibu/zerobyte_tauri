@@ -3,6 +3,9 @@ use std::time::Duration;
 #[cfg(target_os = "windows")]
 use tracing::info;
 
+/// Port used for Windows Service mode
+const SERVICE_PORT: u16 = 4097;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceStatus {
     pub installed: bool,
@@ -18,7 +21,6 @@ async fn execute_elevated_script(
     log_path: &std::path::Path,
     success_message: &str,
 ) -> Result<(), String> {
-    use std::path::PathBuf;
     use tokio::time::sleep;
 
     // Create script in temp directory
@@ -127,7 +129,8 @@ pub async fn is_service_running() -> Result<bool, String> {
         .build()
         .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
 
-    match client.get("http://localhost:4097/healthcheck").send().await {
+    let url = format!("http://localhost:{}/healthcheck", SERVICE_PORT);
+    match client.get(&url).send().await {
         Ok(response) => Ok(response.status().is_success()),
         Err(_) => Ok(false),
     }
@@ -140,7 +143,6 @@ pub async fn install_service(app: tauri::AppHandle) -> Result<(), String> {
     {
         use std::env;
         use tauri::Manager;
-        use tokio::time::{sleep, Duration};
 
         // Get the path to the service executable
         let exe_dir = app
@@ -220,7 +222,6 @@ pub async fn uninstall_service() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
-        use tokio::time::{sleep, Duration};
 
         let temp_dir = env::temp_dir();
         let log_path = temp_dir.join("zerobyte_service_uninstall.log");
@@ -282,7 +283,6 @@ pub async fn start_service() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
-        use tokio::time::{sleep, Duration};
 
         let temp_dir = env::temp_dir();
         let log_path = temp_dir.join("zerobyte_service_start.log");
@@ -341,7 +341,6 @@ pub async fn stop_service() -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         use std::env;
-        use tokio::time::{sleep, Duration};
 
         let temp_dir = env::temp_dir();
         let log_path = temp_dir.join("zerobyte_service_stop.log");

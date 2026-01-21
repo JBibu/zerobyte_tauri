@@ -8,9 +8,8 @@ import { config } from "../core/config";
 import type * as schemaTypes from "./schema";
 
 /**
- * TODO: try to remove this if moving away from react-router.
- * The rr vite plugin doesn't let us customize the chunk names
- * to isolate the db initialization code from the rest of the server code.
+ * Database initialization variables
+ * Lazy initialization pattern to ensure proper schema setup before database operations
  */
 let _sqlite: Database | undefined;
 let _db: ReturnType<typeof drizzle<typeof schemaTypes>> | undefined;

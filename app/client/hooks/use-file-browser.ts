@@ -109,7 +109,7 @@ export const useFileBrowser = (props: UseFileBrowserOptions) => {
 					}
 
 					setFetchedFolders((prev) => new Set(prev).add(folderPath));
-				} catch (error) {
+				} catch {
 					// Silently fail - folder will remain in loading state until retry
 				} finally {
 					setLoadingFolders((prev) => {
