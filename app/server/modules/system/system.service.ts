@@ -1,7 +1,6 @@
-import path from "node:path";
 import { getCapabilities } from "../../core/capabilities";
 import { config } from "../../core/config";
-import { IS_SERVICE_MODE, getZerobytePath, getDefaultPath } from "../../core/platform";
+import { IS_SERVICE_MODE, getZerobytePath } from "../../core/platform";
 import type { UpdateInfoDto } from "./system.dto";
 import semver from "semver";
 import { cache } from "../../utils/cache";
@@ -105,20 +104,7 @@ const getUpdates = async (): Promise<UpdateInfoDto> => {
 	}
 };
 
-const getDebugPaths = () => {
-	return {
-		cwd: process.cwd(),
-		execPath: process.execPath,
-		execDir: path.dirname(process.execPath),
-		zerobytePath: getZerobytePath(),
-		defaultPath: getDefaultPath(),
-		distClientExists: Bun.file(path.join(process.cwd(), "dist", "client", "images", "zerobyte.png")).size > 0,
-		distClientFromExecDir: Bun.file(path.join(path.dirname(process.execPath), "dist", "client", "images", "zerobyte.png")).size > 0,
-	};
-};
-
 export const systemService = {
 	getSystemInfo,
 	getUpdates,
-	getDebugPaths,
 };

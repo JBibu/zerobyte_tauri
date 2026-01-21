@@ -15,7 +15,12 @@ const fetchFilesystemRoots = async (): Promise<{ roots: string[] }> => {
 	const response = await client.get<{ roots: string[] }>({
 		url: "/api/v1/volumes/filesystem/roots",
 	});
-	return response.data ?? { roots: ["/"] };
+	// The client extracts nested data, so response.data is string[] not { roots: string[] }
+	const data = response.data;
+	if (Array.isArray(data)) {
+		return { roots: data };
+	}
+	return { roots: ["/"] };
 };
 
 export const DirectoryBrowser = ({ onSelectPath, selectedPath }: Props) => {

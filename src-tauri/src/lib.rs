@@ -5,7 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{Emitter, Manager};
+use tauri::Manager;
 use tauri_plugin_shell::ShellExt;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
@@ -353,21 +353,17 @@ pub fn run() {
 
             // Start the sidecar and navigate to server
             tauri::async_runtime::spawn(async move {
-                let _ = app_handle.emit("loading-status", "Starting backend...");
                 info!("Starting backend...");
 
                 let state = app_handle.state::<AppState>();
                 let port = match start_sidecar(&app_handle, &state).await {
                     Ok(port) => port,
                     Err(e) => {
-                        let msg = format!("Failed to start backend: {}", e);
-                        error!("{}", msg);
-                        let _ = app_handle.emit("loading-status", msg);
+                        error!("Failed to start backend: {}", e);
                         return;
                     }
                 };
 
-                let _ = app_handle.emit("loading-status", "Backend ready, navigating...");
                 info!("Backend ready on port {}, navigating to server...", port);
 
                 // Navigate to the SSR server instead of using static assets
@@ -375,13 +371,10 @@ pub fn run() {
                     let url = format!("http://localhost:{}/", port);
                     info!("Navigating to SSR server at {}", url);
                     if let Err(e) = window.navigate(url.parse().unwrap()) {
-                        let msg = format!("Failed to navigate: {}", e);
-                        error!("{}", msg);
-                        let _ = app_handle.emit("loading-status", msg);
+                        error!("Failed to navigate: {}", e);
                     }
                 } else {
                     error!("Could not get main window");
-                    let _ = app_handle.emit("loading-status", "Error: Could not get main window");
                 }
             });
 

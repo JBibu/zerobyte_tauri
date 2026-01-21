@@ -31,34 +31,12 @@
             to { transform: rotate(360deg); }
         }
         p { color: #888; font-size: 14px; }
-        #status { margin-top: 8px; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
     <div class="loader">
         <div class="spinner"></div>
         <p>Starting C3i Backup ONE...</p>
-        <p id="status">Initializing...</p>
     </div>
-    <script>
-        const status = document.getElementById('status');
-        let dots = 0;
-
-        // Log that we loaded
-        console.log('[C3i Backup ONE] Loading page initialized');
-
-        // Show elapsed time
-        const start = Date.now();
-        setInterval(() => {
-            const elapsed = Math.floor((Date.now() - start) / 1000);
-            dots = (dots + 1) % 4;
-            status.textContent = `Waiting for server (${elapsed}s)` + '.'.repeat(dots);
-        }, 500);
-
-        // Listen for navigation (won't fire if navigate() is called from Rust)
-        window.addEventListener('beforeunload', () => {
-            console.log('[C3i Backup ONE] Navigation detected');
-        });
-    </script>
 </body>
 </html>

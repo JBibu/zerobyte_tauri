@@ -17,13 +17,6 @@ import { eq } from "drizzle-orm";
 import { verifyUserPassword } from "../auth/helpers";
 
 export const systemController = new Hono()
-	// Debug endpoint - no auth required for troubleshooting
-	.get("/debug/paths", async (c) => {
-		const paths = systemService.getDebugPaths();
-
-		return c.json(paths, 200);
-	})
-	// All other endpoints require auth
 	.use(requireAuth)
 	.get("/info", systemInfoDto, async (c) => {
 		const info = await systemService.getSystemInfo();
