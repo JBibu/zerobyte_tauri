@@ -1,8 +1,10 @@
+import path from "node:path";
 import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as honoLogger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
+import { serveStatic } from "hono/bun";
 import { rateLimiter } from "hono-rate-limiter";
 import { openAPIRouteHandler } from "hono-openapi";
 import { authController } from "./modules/auth/auth.controller";
@@ -18,6 +20,16 @@ import { logger } from "./utils/logger";
 import { config } from "./core/config";
 import { auth } from "~/lib/auth";
 import { closeDatabase } from "./db/db";
+
+// Get the static files directory - use execDir for bundled binaries
+const getStaticRoot = () => {
+	// In production (compiled binary), use the directory containing the executable
+	if (config.__prod__) {
+		return path.join(path.dirname(process.execPath), "dist", "client");
+	}
+	// In development, use the standard dist/client or public
+	return "dist/client";
+};
 
 // Flag to track if shutdown has been requested
 let isShuttingDown = false;
@@ -42,6 +54,15 @@ export const scalarDescriptor = Scalar({
 
 export const createApp = () => {
 	const app = new Hono().use(secureHeaders());
+
+	// Serve static files from dist/client (images, favicon, etc.)
+	// This must be before other middleware to ensure static files are served
+	const staticRoot = getStaticRoot();
+	logger.info(`[Static] Serving static files from: ${staticRoot}`);
+
+	app.use("/images/*", serveStatic({ root: staticRoot }));
+	app.use("/assets/*", serveStatic({ root: staticRoot }));
+	app.get("/site.webmanifest", serveStatic({ root: staticRoot, path: "/images/favicon/site.webmanifest" }));
 
 	if (config.trustedOrigins) {
 		app.use(cors({ origin: config.trustedOrigins }));
