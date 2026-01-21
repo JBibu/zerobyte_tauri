@@ -424,7 +424,16 @@ const browseFilesystem = async (browsePath: string) => {
 			path: normalizedPath,
 		};
 	} catch (error) {
-		throw new InternalServerError(`Failed to browse filesystem: ${toMessage(error)}`);
+		// Handle permission denied and other access errors gracefully
+		// Return empty directories instead of throwing 500 error
+		const errorMessage = toMessage(error);
+		if (errorMessage.includes("EPERM") || errorMessage.includes("EACCES") || errorMessage.includes("denied")) {
+			return {
+				directories: [],
+				path: normalizedPath,
+			};
+		}
+		throw new InternalServerError(`Failed to browse filesystem: ${errorMessage}`);
 	}
 };
 
