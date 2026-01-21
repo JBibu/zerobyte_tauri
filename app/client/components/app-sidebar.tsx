@@ -60,7 +60,7 @@ export function AppSidebar() {
 			: `https://github.com/nicotsx/zerobyte/releases/tag/${displayVersion}`;
 
 	return (
-		<Sidebar variant="inset" collapsible="icon" className="p-0">
+		<Sidebar variant="inset" collapsible="icon" className="p-0 pt-9">
 			<SidebarHeader className="bg-card-header border-b border-border/50 hidden md:flex h-16.25 flex-row items-center p-4">
 				<Link to="/volumes" className="flex items-center gap-3 font-semibold pl-2">
 					<img src="/images/zerobyte.png" alt="C3i Backup ONE Logo" className={cn("h-8 w-8 shrink-0 object-contain -ml-2")} />

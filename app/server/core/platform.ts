@@ -159,15 +159,34 @@ export const getDefaultPath = (): string => {
 	// Get the directory containing the running executable (where restic, rclone, etc. are bundled)
 	const execDir = path.dirname(process.execPath);
 
+	// In development mode, also include the src-tauri/binaries directory
+	const isDev = process.env.NODE_ENV === "development";
+	const devBinariesPath = isDev ? path.join(process.cwd(), "src-tauri", "binaries") : null;
+
 	if (IS_WINDOWS) {
 		const systemRoot = process.env.SystemRoot || "C:\\Windows";
-		return [
+		const paths = [
 			execDir,
 			process.cwd(),
 			process.env.PATH || "",
 			path.join(systemRoot, "System32"),
 			systemRoot,
-		].join(path.delimiter);
+		];
+
+		// Add dev binaries path if in development
+		if (devBinariesPath) {
+			paths.unshift(devBinariesPath);
+		}
+
+		return paths.join(path.delimiter);
 	}
-	return [execDir, process.cwd(), process.env.PATH || "/usr/local/bin:/usr/bin:/bin"].join(path.delimiter);
+
+	const paths = [execDir, process.cwd(), process.env.PATH || "/usr/local/bin:/usr/bin:/bin"];
+
+	// Add dev binaries path if in development
+	if (devBinariesPath) {
+		paths.unshift(devBinariesPath);
+	}
+
+	return paths.join(path.delimiter);
 };

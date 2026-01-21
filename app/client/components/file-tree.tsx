@@ -635,7 +635,8 @@ function sortFileList(nodeList: Node[]): Node[] {
 
 	// Start with root level items (items with no parent or filesystem roots)
 	const rootItems = nodeList.filter((node) => {
-		return isFilesystemRoot(node.fullPath) || getParentPath(node.fullPath) === "";
+		const parentPath = getParentPath(node.fullPath);
+		return isFilesystemRoot(node.fullPath) || parentPath === "" || parentPath === "/";
 	});
 
 	for (const item of rootItems) {

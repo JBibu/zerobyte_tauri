@@ -366,6 +366,7 @@ const listFiles = async (name: string, subPath?: string) => {
 	} catch (error) {
 		// Handle permission denied and other access errors gracefully
 		const errorMessage = toMessage(error);
+		logger.warn(`[listFiles] Error reading directory ${normalizedPath}: ${errorMessage}`);
 		if (errorMessage.includes("EPERM") || errorMessage.includes("EACCES") || errorMessage.includes("denied")) {
 			return {
 				files: [],
