@@ -1,20 +1,54 @@
+import path from "node:path";
 import { createLogger, format, transports } from "winston";
 import { sanitizeSensitiveData } from "./sanitize";
+import { getZerobytePath } from "../core/platform";
 
-const { printf, combine, colorize } = format;
+const { printf, combine, colorize, timestamp } = format;
 
 const printConsole = printf((info) => `${info.level} > ${String(info.message)}`);
+const printFile = printf((info) => `${info.timestamp} [${info.level.toUpperCase()}] ${String(info.message)}`);
 const consoleFormat = combine(colorize(), printConsole);
+const fileFormat = combine(timestamp({ format: "YYYY-MM-DD HH:mm:ss" }), printFile);
 
 const getDefaultLevel = () => {
 	const isProd = process.env.NODE_ENV === "production";
 	return isProd ? "info" : "debug";
 };
 
+const getLogFilePath = () => {
+	try {
+		return path.join(getZerobytePath(), "logs", "server.log");
+	} catch {
+		return null;
+	}
+};
+
+const createTransports = () => {
+	const logTransports: (transports.ConsoleTransportInstance | transports.FileTransportInstance)[] = [
+		new transports.Console({ level: process.env.LOG_LEVEL || getDefaultLevel(), format: consoleFormat }),
+	];
+
+	const logFilePath = getLogFilePath();
+	if (logFilePath) {
+		logTransports.push(
+			new transports.File({
+				filename: logFilePath,
+				level: process.env.LOG_LEVEL || getDefaultLevel(),
+				format: fileFormat,
+				maxsize: 5 * 1024 * 1024, // 5MB
+				maxFiles: 3,
+				tailable: true,
+			}),
+		);
+	}
+
+	return logTransports;
+};
+
 const winstonLogger = createLogger({
 	level: process.env.LOG_LEVEL || getDefaultLevel(),
 	format: format.json(),
-	transports: [new transports.Console({ level: process.env.LOG_LEVEL || getDefaultLevel(), format: consoleFormat })],
+	transports: createTransports(),
 });
 
 const log = (level: "info" | "warn" | "error" | "debug", messages: unknown[]) => {

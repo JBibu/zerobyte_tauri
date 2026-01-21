@@ -34,6 +34,8 @@ export async function ensureDataDirectories(): Promise<void> {
 		RESTIC_CACHE_DIR,
 		// SSH keys directory
 		path.join(zerobytePath, "ssh"),
+		// Logs directory
+		path.join(zerobytePath, "logs"),
 	];
 
 	for (const dir of directories) {
