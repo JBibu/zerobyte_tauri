@@ -123,8 +123,19 @@ pub async fn start_sidecar(
 
     let shell = app.shell();
 
-    // Get the sidecar command - use just the binary name, not the path
-    let sidecar_command = shell.sidecar("zerobyte-server")?;
+    // Get the resource directory where Tauri bundles our static files
+    let resource_dir = app
+        .path()
+        .resource_dir()
+        .map_err(|e| format!("Failed to get resource directory: {}", e))?;
+
+    info!("Resource directory: {}", resource_dir.display());
+
+    // Get the sidecar command and set the working directory to resource_dir
+    // This ensures the server can find dist/client for static files
+    let sidecar_command = shell
+        .sidecar("zerobyte-server")?
+        .current_dir(resource_dir);
 
     info!("Starting zerobyte-server sidecar on port 4096...");
 
