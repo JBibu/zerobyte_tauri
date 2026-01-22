@@ -85,7 +85,7 @@ export function getZerobytePath(): string {
 
 	// Development mode: use user-accessible directory
 	return path.join(os.homedir(), ".local", "share", "zerobyte");
-};
+}
 
 /**
  * Get the temporary directory path
@@ -212,4 +212,4 @@ export function getDefaultPath(): string {
 	}
 
 	return paths.join(path.delimiter);
-};
+}

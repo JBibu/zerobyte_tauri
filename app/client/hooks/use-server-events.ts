@@ -6,7 +6,6 @@ import {
 	notifySuccess,
 	notifyWarning,
 } from "../lib/notifications";
-import { isTauri } from "../lib/tauri";
 
 type ServerEventType =
 	| "connected"
@@ -77,13 +76,11 @@ export function useServerEvents() {
 		eventSource.addEventListener("backup:started", (e) => {
 			const data = JSON.parse(e.data) as BackupEvent;
 
-			// Send Tauri notification for backup start
-			if (isTauri()) {
-				notifyInfo(
-					"Backup Started",
-					`Backing up ${data.volumeName} to ${data.repositoryName}`,
-				).catch(console.error);
-			}
+			// Send desktop notification for backup start (only works in Tauri)
+			notifyInfo(
+				"Backup Started",
+				`Backing up ${data.volumeName} to ${data.repositoryName}`,
+			).catch(console.error);
 
 			handlersRef.current.get("backup:started")?.forEach((handler) => {
 				handler(data);
@@ -104,29 +101,27 @@ export function useServerEvents() {
 			void queryClient.invalidateQueries();
 			void queryClient.refetchQueries();
 
-			// Send Tauri notification based on backup status
-			if (isTauri()) {
-				if (data.status === "success") {
-					notifySuccess(
-						"Backup Complete",
-						`Successfully backed up ${data.volumeName} to ${data.repositoryName}`,
-					).catch(console.error);
-				} else if (data.status === "warning") {
-					notifyWarning(
-						"Backup Completed with Warnings",
-						`Backup of ${data.volumeName} completed but with warnings`,
-					).catch(console.error);
-				} else if (data.status === "error") {
-					notifyError(
-						"Backup Failed",
-						data.error || `Failed to backup ${data.volumeName} to ${data.repositoryName}`,
-					).catch(console.error);
-				} else if (data.status === "stopped") {
-					notifyInfo(
-						"Backup Stopped",
-						`Backup of ${data.volumeName} was stopped`,
-					).catch(console.error);
-				}
+			// Send desktop notification based on backup status (only works in Tauri)
+			if (data.status === "success") {
+				notifySuccess(
+					"Backup Complete",
+					`Successfully backed up ${data.volumeName} to ${data.repositoryName}`,
+				).catch(console.error);
+			} else if (data.status === "warning") {
+				notifyWarning(
+					"Backup Completed with Warnings",
+					`Backup of ${data.volumeName} completed but with warnings`,
+				).catch(console.error);
+			} else if (data.status === "error") {
+				notifyError(
+					"Backup Failed",
+					data.error || `Failed to backup ${data.volumeName} to ${data.repositoryName}`,
+				).catch(console.error);
+			} else if (data.status === "stopped") {
+				notifyInfo(
+					"Backup Stopped",
+					`Backup of ${data.volumeName} was stopped`,
+				).catch(console.error);
 			}
 
 			handlersRef.current.get("backup:completed")?.forEach((handler) => {
@@ -137,12 +132,10 @@ export function useServerEvents() {
 		eventSource.addEventListener("volume:mounted", (e) => {
 			const data = JSON.parse(e.data) as VolumeEvent;
 
-			// Send Tauri notification for volume mount
-			if (isTauri()) {
-				notifySuccess("Volume Mounted", `${data.volumeName} is now accessible`).catch(
-					console.error,
-				);
-			}
+			// Send desktop notification for volume mount (only works in Tauri)
+			notifySuccess("Volume Mounted", `${data.volumeName} is now accessible`).catch(
+				console.error,
+			);
 
 			handlersRef.current.get("volume:mounted")?.forEach((handler) => {
 				handler(data);
@@ -152,12 +145,10 @@ export function useServerEvents() {
 		eventSource.addEventListener("volume:unmounted", (e) => {
 			const data = JSON.parse(e.data) as VolumeEvent;
 
-			// Send Tauri notification for volume unmount
-			if (isTauri()) {
-				notifyInfo("Volume Unmounted", `${data.volumeName} has been disconnected`).catch(
-					console.error,
-				);
-			}
+			// Send desktop notification for volume unmount (only works in Tauri)
+			notifyInfo("Volume Unmounted", `${data.volumeName} has been disconnected`).catch(
+				console.error,
+			);
 
 			handlersRef.current.get("volume:unmounted")?.forEach((handler) => {
 				handler(data);
@@ -187,12 +178,10 @@ export function useServerEvents() {
 		eventSource.addEventListener("mirror:started", (e) => {
 			const data = JSON.parse(e.data) as MirrorEvent;
 
-			// Send Tauri notification for mirror start
-			if (isTauri()) {
-				notifyInfo("Mirror Started", `Mirroring repository ${data.repositoryName}`).catch(
-					console.error,
-				);
-			}
+			// Send desktop notification for mirror start (only works in Tauri)
+			notifyInfo("Mirror Started", `Mirroring repository ${data.repositoryName}`).catch(
+				console.error,
+			);
 
 			handlersRef.current.get("mirror:started")?.forEach((handler) => {
 				handler(data);
@@ -205,19 +194,17 @@ export function useServerEvents() {
 			// Invalidate queries to refresh mirror status in the UI
 			void queryClient.invalidateQueries();
 
-			// Send Tauri notification based on mirror status
-			if (isTauri()) {
-				if (data.status === "success") {
-					notifySuccess(
-						"Mirror Complete",
-						`Successfully mirrored repository ${data.repositoryName}`,
-					).catch(console.error);
-				} else if (data.status === "error") {
-					notifyError(
-						"Mirror Failed",
-						data.error || `Failed to mirror repository ${data.repositoryName}`,
-					).catch(console.error);
-				}
+			// Send desktop notification based on mirror status (only works in Tauri)
+			if (data.status === "success") {
+				notifySuccess(
+					"Mirror Complete",
+					`Successfully mirrored repository ${data.repositoryName}`,
+				).catch(console.error);
+			} else if (data.status === "error") {
+				notifyError(
+					"Mirror Failed",
+					data.error || `Failed to mirror repository ${data.repositoryName}`,
+				).catch(console.error);
 			}
 
 			handlersRef.current.get("mirror:completed")?.forEach((handler) => {

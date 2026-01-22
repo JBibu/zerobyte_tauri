@@ -10,12 +10,17 @@ export interface CacheOptions {
 }
 
 export const createCache = (options: CacheOptions = {}) => {
-	const defaultPath = path.join(path.dirname(DATABASE_URL), "cache.db");
+	// Use in-memory cache when DATABASE_URL is :memory: (test environment)
+	const isMemoryDb = DATABASE_URL === ":memory:";
+	const defaultPath = isMemoryDb ? ":memory:" : path.join(path.dirname(DATABASE_URL), "cache.db");
 	const dbPath = options.dbPath || defaultPath;
 
-	const dir = path.dirname(dbPath);
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir, { recursive: true });
+	// Skip directory creation for in-memory databases
+	if (dbPath !== ":memory:") {
+		const dir = path.dirname(dbPath);
+		if (!fs.existsSync(dir)) {
+			fs.mkdirSync(dir, { recursive: true });
+		}
 	}
 
 	const db = new Database(dbPath);

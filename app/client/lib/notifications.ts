@@ -84,7 +84,9 @@ export async function notify(title: string, body?: string): Promise<void> {
 	return sendNotification({ title, body });
 }
 
-export const notifySuccess = notify;
-export const notifyError = notify;
-export const notifyWarning = notify;
-export const notifyInfo = notify;
+// Semantic aliases for different notification types
+// These all use the same native notification but allow semantic differentiation in code
+export { notify as notifySuccess };
+export { notify as notifyError };
+export { notify as notifyWarning };
+export { notify as notifyInfo };

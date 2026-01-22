@@ -47,11 +47,11 @@ const createBetterAuth = (secret: string) =>
 		},
 		session: {
 			modelName: "sessionsTable",
-			expiresIn: 60 * 60 * 24 * 365 * 10, // 10 years - effectively permanent for backup app
+			expiresIn: 60 * 60 * 24 * 400, // 400 days (max allowed by cookie spec)
 			updateAge: 60 * 60 * 24 * 30, // Refresh session every 30 days of activity
 			cookieCache: {
 				enabled: true,
-				maxAge: 60 * 60 * 24 * 365 * 10, // 10 years (in seconds)
+				maxAge: 60 * 60 * 24 * 400, // 400 days (max allowed by cookie spec)
 			},
 		},
 		plugins: [
