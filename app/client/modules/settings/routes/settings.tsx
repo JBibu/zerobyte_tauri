@@ -22,6 +22,7 @@ import { authClient } from "~/client/lib/auth-client";
 import { isTauri } from "~/client/lib/tauri";
 import { appContext } from "~/context";
 import { AppSettingsSection } from "../components/app-settings-section";
+import { LogViewerSection } from "../components/log-viewer-section";
 import { TwoFactorSection } from "../components/two-factor-section";
 import { WindowsServiceSection } from "../components/windows-service-section";
 import type { Route } from "./+types/settings";
@@ -288,6 +289,8 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
 			<AppSettingsSection />
 
 			<WindowsServiceSection />
+
+			<LogViewerSection />
 
 			{/* Notification Test Panel - Only show in Tauri environment */}
 			{isTauri() && (

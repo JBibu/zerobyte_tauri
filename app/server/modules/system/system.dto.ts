@@ -86,3 +86,26 @@ export const downloadResticPasswordDto = describeRoute({
 		},
 	},
 });
+
+export const logsResponseSchema = type({
+	logs: "string",
+	path: "string",
+});
+
+export type LogsDto = typeof logsResponseSchema.infer;
+
+export const getLogsDto = describeRoute({
+	description: "Get application logs",
+	tags: ["System"],
+	operationId: "getLogs",
+	responses: {
+		200: {
+			description: "Application logs content",
+			content: {
+				"application/json": {
+					schema: resolver(logsResponseSchema),
+				},
+			},
+		},
+	},
+});

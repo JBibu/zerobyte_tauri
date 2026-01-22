@@ -66,7 +66,7 @@ export const createClient = (config: Config = {}): Client => {
 	};
 
 	const request: Client["request"] = async (options) => {
-		// @ts-expect-error - Auto-generated: beforeRequest interceptor may modify return type
+		// @ts-expect-error
 		const { opts, url } = await beforeRequest(options);
 		const requestInit: ReqInit = {
 			redirect: "follow",

@@ -34,6 +34,8 @@ import type {
 	GetBackupScheduleForVolumeData,
 	GetBackupScheduleForVolumeResponses,
 	GetBackupScheduleResponses,
+	GetFilesystemRootsData,
+	GetFilesystemRootsResponses,
 	GetMirrorCompatibilityData,
 	GetMirrorCompatibilityResponses,
 	GetNotificationDestinationData,
@@ -242,6 +244,17 @@ export const healthCheckVolume = <ThrowOnError extends boolean = false>(
 export const listFiles = <ThrowOnError extends boolean = false>(options: Options<ListFilesData, ThrowOnError>) =>
 	(options.client ?? client).get<ListFilesResponses, unknown, ThrowOnError>({
 		url: "/api/v1/volumes/{name}/files",
+		...options,
+	});
+
+/**
+ * Get filesystem root paths (drive letters on Windows, / on Unix)
+ */
+export const getFilesystemRoots = <ThrowOnError extends boolean = false>(
+	options?: Options<GetFilesystemRootsData, ThrowOnError>,
+) =>
+	(options?.client ?? client).get<GetFilesystemRootsResponses, unknown, ThrowOnError>({
+		url: "/api/v1/volumes/filesystem/roots",
 		...options,
 	});
 

@@ -19,6 +19,7 @@ import {
 	downloadResticPassword,
 	getBackupSchedule,
 	getBackupScheduleForVolume,
+	getFilesystemRoots,
 	getMirrorCompatibility,
 	getNotificationDestination,
 	getRepository,
@@ -87,6 +88,8 @@ import type {
 	GetBackupScheduleForVolumeData,
 	GetBackupScheduleForVolumeResponse,
 	GetBackupScheduleResponse,
+	GetFilesystemRootsData,
+	GetFilesystemRootsResponse,
 	GetMirrorCompatibilityData,
 	GetMirrorCompatibilityResponse,
 	GetNotificationDestinationData,
@@ -405,6 +408,31 @@ export const listFilesOptions = (options: Options<ListFilesData>) =>
 			return data;
 		},
 		queryKey: listFilesQueryKey(options),
+	});
+
+export const getFilesystemRootsQueryKey = (options?: Options<GetFilesystemRootsData>) =>
+	createQueryKey("getFilesystemRoots", options);
+
+/**
+ * Get filesystem root paths (drive letters on Windows, / on Unix)
+ */
+export const getFilesystemRootsOptions = (options?: Options<GetFilesystemRootsData>) =>
+	queryOptions<
+		GetFilesystemRootsResponse,
+		DefaultError,
+		GetFilesystemRootsResponse,
+		ReturnType<typeof getFilesystemRootsQueryKey>
+	>({
+		queryFn: async ({ queryKey, signal }) => {
+			const { data } = await getFilesystemRoots({
+				...options,
+				...queryKey[0],
+				signal,
+				throwOnError: true,
+			});
+			return data;
+		},
+		queryKey: getFilesystemRootsQueryKey(options),
 	});
 
 export const browseFilesystemQueryKey = (options?: Options<BrowseFilesystemData>) =>
