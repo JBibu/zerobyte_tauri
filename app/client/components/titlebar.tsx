@@ -80,7 +80,7 @@ export function Titlebar() {
 			{/* Drag region - entire titlebar except buttons */}
 			<div
 				data-tauri-drag-region
-				className="flex-1 h-full flex items-center px-4 cursor-move"
+				className="flex-1 h-full flex items-center px-4"
 			>
 				<span className="text-sm font-medium text-foreground">C3i Servicios Informáticos</span>
 			</div>

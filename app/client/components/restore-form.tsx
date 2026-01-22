@@ -13,6 +13,7 @@ import { PathSelector } from "~/client/components/path-selector";
 import { FileTree } from "~/client/components/file-tree";
 import { listSnapshotFilesOptions, restoreSnapshotMutation } from "~/client/api-client/@tanstack/react-query.gen";
 import { useFileBrowser } from "~/client/hooks/use-file-browser";
+import { useSystemInfo } from "~/client/hooks/use-system-info";
 import { OVERWRITE_MODES, type OverwriteMode } from "~/schemas/restic";
 import type { Repository, Snapshot } from "~/client/lib/types";
 
@@ -28,7 +29,9 @@ interface RestoreFormProps {
 export function RestoreForm({ snapshot, repository, snapshotId, returnPath }: RestoreFormProps) {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
+	const { platform } = useSystemInfo();
 
+	const defaultRootPath = platform?.os === "windows" ? "C:\\" : "/";
 	const volumeBasePath = snapshot.paths[0]?.match(/^(.*?_data)(\/|$)/)?.[1] || "/";
 
 	const [restoreLocation, setRestoreLocation] = useState<RestoreLocation>("original");
@@ -201,7 +204,7 @@ export function RestoreForm({ snapshot, repository, snapshotId, returnPath }: Re
 							</div>
 							{restoreLocation === "custom" && (
 								<div className="space-y-2">
-									<PathSelector value={customTargetPath || "/"} onChange={setCustomTargetPath} />
+									<PathSelector value={customTargetPath || defaultRootPath} onChange={setCustomTargetPath} />
 									<p className="text-xs text-muted-foreground">Files will be restored directly to this path</p>
 								</div>
 							)}

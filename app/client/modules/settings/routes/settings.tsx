@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { downloadResticPasswordMutation } from "~/client/api-client/@tanstack/react-query.gen";
-import { NotificationTestPanel } from "~/client/components/notification-test-panel";
 import { Button } from "~/client/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "~/client/components/ui/card";
 import {
@@ -19,7 +18,6 @@ import {
 import { Input } from "~/client/components/ui/input";
 import { Label } from "~/client/components/ui/label";
 import { authClient } from "~/client/lib/auth-client";
-import { isTauri } from "~/client/lib/tauri";
 import { appContext } from "~/context";
 import { AppSettingsSection } from "../components/app-settings-section";
 import { LogViewerSection } from "../components/log-viewer-section";
@@ -291,21 +289,6 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
 			<WindowsServiceSection />
 
 			<LogViewerSection />
-
-			{/* Notification Test Panel - Only show in Tauri environment */}
-			{isTauri() && (
-				<>
-					<div className="border-t border-border/50 bg-card-header p-6">
-						<CardTitle>Notification Testing</CardTitle>
-						<CardDescription className="mt-1.5">
-							Test desktop notifications in the Tauri app
-						</CardDescription>
-					</div>
-					<CardContent className="p-6">
-						<NotificationTestPanel />
-					</CardContent>
-				</>
-			)}
 		</Card>
 	);
 }
