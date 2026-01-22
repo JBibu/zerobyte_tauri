@@ -4,6 +4,7 @@ import { type } from "arktype";
 import { CheckCircle, Loader2, Plug, Save, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { getDefaultVolumePath } from "~/client/lib/constants";
 import { cn, slugify } from "~/client/lib/utils";
 import { deepClean } from "~/utils/object";
 import { Button } from "../../../components/ui/button";
@@ -41,7 +42,7 @@ type Props = {
 };
 
 const defaultValuesForType = {
-	directory: { backend: "directory" as const, path: "/" },
+	directory: { backend: "directory" as const, path: getDefaultVolumePath() },
 	nfs: { backend: "nfs" as const, port: 2049, version: "4.1" as const },
 	smb: { backend: "smb" as const, port: 445, vers: "3.0" as const },
 	webdav: { backend: "webdav" as const, port: 80, ssl: false, path: "/webdav" },

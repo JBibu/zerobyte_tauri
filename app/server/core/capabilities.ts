@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import { logger } from "../utils/logger";
-import { IS_WINDOWS, getRcloneConfigPath } from "./platform";
+import { IS_WINDOWS, IS_TAURI, getRcloneConfigPath } from "./platform";
 
 export type SystemCapabilities = {
 	rclone: boolean;
@@ -16,7 +16,6 @@ let capabilitiesPromise: Promise<SystemCapabilities> | null = null;
  */
 export async function getCapabilities(): Promise<SystemCapabilities> {
 	if (capabilitiesPromise === null) {
-		// Start detection and cache the promise
 		capabilitiesPromise = detectCapabilities();
 	}
 
@@ -34,10 +33,7 @@ async function detectCapabilities(): Promise<SystemCapabilities> {
 }
 
 /**
- * Checks if rclone is available by:
- * 1. Checking if the rclone config directory exists and is accessible
- *    - Windows: %APPDATA%\rclone
- *    - Linux: /root/.config/rclone (or ~/.config/rclone)
+ * Checks if rclone is available by checking if the rclone config directory exists
  */
 async function detectRclone(): Promise<boolean> {
 	const rcloneConfigPath = getRcloneConfigPath();
@@ -45,7 +41,6 @@ async function detectRclone(): Promise<boolean> {
 	try {
 		await fs.access(rcloneConfigPath);
 
-		// Make sure the folder is not empty
 		const files = await fs.readdir(rcloneConfigPath);
 		if (files.length === 0) {
 			throw new Error("rclone config directory is empty");
@@ -54,34 +49,37 @@ async function detectRclone(): Promise<boolean> {
 		logger.info("rclone capability: enabled");
 		return true;
 	} catch (_) {
-		if (IS_WINDOWS) {
+		if (IS_WINDOWS || IS_TAURI) {
 			logger.warn(`rclone capability: disabled. To enable: create rclone config at ${rcloneConfigPath}`);
 		} else {
-			logger.warn("rclone capability: disabled. To enable: mount /root/.config/rclone in docker-compose.yml");
+			logger.warn("rclone capability: disabled. To enable: mount ~/.config/rclone in docker-compose.yml");
 		}
 		return false;
 	}
 }
 
 /**
- * Detects if the process has CAP_SYS_ADMIN capability (Linux only).
- * On Windows, this capability doesn't exist - mounting is handled differently.
+ * Detects if the process has CAP_SYS_ADMIN capability (Linux Docker only).
+ * On Windows/macOS/Tauri, this capability doesn't exist - mounting is handled differently.
  */
 async function detectSysAdmin(): Promise<boolean> {
-	// Windows doesn't have Linux capabilities - mounting is handled via different mechanisms
 	if (IS_WINDOWS) {
 		logger.info("sysAdmin capability: not applicable on Windows");
 		return false;
 	}
 
+	if (IS_TAURI) {
+		logger.info("sysAdmin capability: not applicable in desktop app");
+		return false;
+	}
+
 	if (process.platform !== "linux") {
-		logger.warn("sysAdmin capability: disabled. Non-Linux platform detected");
+		logger.info("sysAdmin capability: not applicable on this platform");
 		return false;
 	}
 
 	try {
 		const procStatus = await fs.readFile("/proc/self/status", "utf-8");
-
 		const capEffLine = procStatus.split("\n").find((line) => line.startsWith("CapEff:"));
 
 		if (!capEffLine) {
@@ -89,7 +87,6 @@ async function detectSysAdmin(): Promise<boolean> {
 			return false;
 		}
 
-		// Extract the hex value (e.g., "00000000a80425fb")
 		const capEffHex = capEffLine.split(/\s+/)[1];
 
 		if (!capEffHex) {
@@ -97,7 +94,6 @@ async function detectSysAdmin(): Promise<boolean> {
 			return false;
 		}
 
-		// Check if bit 21 (CAP_SYS_ADMIN) is set
 		const capValue = parseInt(capEffHex, 16) & (1 << 21);
 
 		if (capValue !== 0) {
@@ -105,10 +101,10 @@ async function detectSysAdmin(): Promise<boolean> {
 			return true;
 		}
 
-		logger.warn("sysAdmin capability: disabled. " + "To enable: add 'cap_add: SYS_ADMIN' in docker-compose.yml");
+		logger.warn("sysAdmin capability: disabled. To enable: add 'cap_add: SYS_ADMIN' in docker-compose.yml");
 		return false;
 	} catch (_error) {
-		logger.warn("sysAdmin capability: disabled. " + "To enable: add 'cap_add: SYS_ADMIN' in docker-compose.yml");
+		logger.warn("sysAdmin capability: disabled. To enable: add 'cap_add: SYS_ADMIN' in docker-compose.yml");
 		return false;
 	}
 }

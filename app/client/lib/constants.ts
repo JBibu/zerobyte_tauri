@@ -16,3 +16,15 @@ function getRepositoryBase(): string {
 }
 
 export const REPOSITORY_BASE = getRepositoryBase();
+
+export function getDefaultVolumePath(): string {
+	if (!isTauri()) {
+		return "/";
+	}
+
+	const platform = navigator.platform.toLowerCase();
+	if (platform.includes("win")) {
+		return "C:\\";
+	}
+	return "/";
+}

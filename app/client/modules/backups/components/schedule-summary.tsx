@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { parseError } from "~/client/lib/errors";
 import { Link } from "react-router";
 import { formatShortDateTime, formatTimeAgo } from "~/client/lib/datetime";
+import { isTauri } from "~/client/lib/tauri";
 
 type Props = {
 	schedule: BackupSchedule;
@@ -179,7 +180,9 @@ export const ScheduleSummary = (props: Props) => {
 							<p className="text-xs uppercase text-muted-foreground">Warning Details</p>
 							<p className="font-mono text-sm text-yellow-600 whitespace-pre-wrap wrap-break-word">
 								{schedule.lastBackupError ??
-									"Last backup completed with warnings. Check your container logs for more details."}
+									(isTauri()
+										? "Last backup completed with warnings. Check the application logs for more details."
+										: "Last backup completed with warnings. Check your container logs for more details.")}
 							</p>
 						</div>
 					)}

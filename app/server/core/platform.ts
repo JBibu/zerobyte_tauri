@@ -16,6 +16,12 @@ export const EXE_SUFFIX = IS_WINDOWS ? ".exe" : "";
 export const IS_SERVICE_MODE = process.env.ZEROBYTE_SERVICE_MODE === "1";
 
 /**
+ * Detect if running inside Tauri desktop app
+ * Tauri sets TAURI environment variable, or we detect via Windows/macOS in production
+ */
+export const IS_TAURI = Boolean(process.env.TAURI) || ((IS_WINDOWS || IS_MACOS) && process.env.NODE_ENV === "production");
+
+/**
  * Get the application data path based on platform
  * - Windows: %APPDATA% (e.g., C:\Users\<user>\AppData\Roaming)
  * - macOS: ~/Library/Application Support
