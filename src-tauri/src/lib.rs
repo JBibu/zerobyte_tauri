@@ -123,14 +123,20 @@ pub async fn start_sidecar(
     // In dev mode only, check if the Vite dev server is already running
     #[cfg(debug_assertions)]
     if wait_for_server(DESKTOP_PORT, 30).await {
-        info!("Development server already running on port {}, skipping sidecar", DESKTOP_PORT);
+        info!(
+            "Development server already running on port {}, skipping sidecar",
+            DESKTOP_PORT
+        );
         return Ok(DESKTOP_PORT);
     }
 
     // In release mode, quick check if server is already running (e.g., from previous instance)
     #[cfg(not(debug_assertions))]
     if wait_for_server(DESKTOP_PORT, 2).await {
-        info!("Server already running on port {}, skipping sidecar", DESKTOP_PORT);
+        info!(
+            "Server already running on port {}, skipping sidecar",
+            DESKTOP_PORT
+        );
         return Ok(DESKTOP_PORT);
     }
 
@@ -146,11 +152,12 @@ pub async fn start_sidecar(
 
     // Get the sidecar command and set the working directory to resource_dir
     // This ensures the server can find dist/client for static files
-    let sidecar_command = shell
-        .sidecar("zerobyte-server")?
-        .current_dir(resource_dir);
+    let sidecar_command = shell.sidecar("zerobyte-server")?.current_dir(resource_dir);
 
-    info!("Starting zerobyte-server sidecar on port {}...", DESKTOP_PORT);
+    info!(
+        "Starting zerobyte-server sidecar on port {}...",
+        DESKTOP_PORT
+    );
 
     // Spawn the sidecar process
     let (mut rx, child) = sidecar_command.spawn()?;
@@ -180,10 +187,7 @@ pub async fn start_sidecar(
                     error!("[sidecar error] {}", err);
                 }
                 CommandEvent::Terminated(payload) => {
-                    info!(
-                        "[sidecar] Process terminated with code: {:?}",
-                        payload.code
-                    );
+                    info!("[sidecar] Process terminated with code: {:?}", payload.code);
                     // Optionally emit an event to the frontend
                     let _ = app_handle.emit("sidecar-terminated", payload.code);
                     break;
@@ -203,7 +207,9 @@ pub async fn start_sidecar(
 }
 
 /// Stop the sidecar server process gracefully
-pub async fn stop_sidecar(state: &AppState) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+pub async fn stop_sidecar(
+    state: &AppState,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Don't stop anything if we're using the service
     if state.using_service.load(Ordering::SeqCst) {
         info!("Using Windows Service, not stopping sidecar");
@@ -247,6 +253,7 @@ pub fn run() {
         .init();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         // Single instance plugin must be registered first
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // Focus the main window when a new instance tries to start
@@ -284,9 +291,11 @@ pub fn run() {
             let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
             let separator1 = MenuItem::with_id(app, "sep1", "────────────", false, None::<&str>)?;
             let volumes = MenuItem::with_id(app, "volumes", "Volumes", true, None::<&str>)?;
-            let repositories = MenuItem::with_id(app, "repositories", "Repositories", true, None::<&str>)?;
+            let repositories =
+                MenuItem::with_id(app, "repositories", "Repositories", true, None::<&str>)?;
             let backups = MenuItem::with_id(app, "backups", "Backups", true, None::<&str>)?;
-            let notifications = MenuItem::with_id(app, "notifications", "Notifications", true, None::<&str>)?;
+            let notifications =
+                MenuItem::with_id(app, "notifications", "Notifications", true, None::<&str>)?;
             let settings = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
             let separator2 = MenuItem::with_id(app, "sep2", "────────────", false, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -326,7 +335,8 @@ pub fn run() {
                                 let _ = window.set_focus();
                                 let state = app.state::<AppState>();
                                 let port = state.backend_port.load(Ordering::SeqCst);
-                                let url = format!("http://localhost:{}/{}", port, event.id.as_ref());
+                                let url =
+                                    format!("http://localhost:{}/{}", port, event.id.as_ref());
                                 let _ = window.navigate(url.parse().unwrap());
                             }
                         }

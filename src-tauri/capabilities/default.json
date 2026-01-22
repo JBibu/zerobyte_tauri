@@ -2,9 +2,14 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default capability for Zerobyte desktop app",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "remote": {
-    "urls": ["http://localhost:*", "http://127.0.0.1:*"]
+    "urls": [
+      "http://localhost:*",
+      "http://127.0.0.1:*"
+    ]
   },
   "permissions": [
     "core:default",
@@ -17,10 +22,22 @@
     {
       "identifier": "shell:allow-spawn",
       "allow": [
-        { "name": "binaries/zerobyte-server", "sidecar": true },
-        { "name": "binaries/restic", "sidecar": true },
-        { "name": "binaries/rclone", "sidecar": true },
-        { "name": "binaries/shoutrrr", "sidecar": true }
+        {
+          "name": "binaries/zerobyte-server",
+          "sidecar": true
+        },
+        {
+          "name": "binaries/restic",
+          "sidecar": true
+        },
+        {
+          "name": "binaries/rclone",
+          "sidecar": true
+        },
+        {
+          "name": "binaries/shoutrrr",
+          "sidecar": true
+        }
       ]
     },
     "shell:allow-stdin-write",
@@ -28,6 +45,7 @@
     "process:default",
     "autostart:allow-enable",
     "autostart:allow-disable",
-    "autostart:allow-is-enabled"
+    "autostart:allow-is-enabled",
+    "notification:default"
   ]
 }

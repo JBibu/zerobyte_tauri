@@ -3,6 +3,7 @@ import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration }
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { NotificationPermissionPrompt } from "./client/components/notification-permission-prompt";
 import { Toaster } from "./client/components/ui/sonner";
 import { useServerEvents } from "./client/hooks/use-server-events";
 import { client } from "./client/api-client/client.gen";
@@ -54,6 +55,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<body className="dark">
 					{children}
 					<Toaster />
+					<NotificationPermissionPrompt />
 					<ScrollRestoration />
 					<Scripts />
 				</body>

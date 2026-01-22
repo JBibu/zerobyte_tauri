@@ -53,6 +53,7 @@
 		"@scalar/hono-api-reference": "^0.9.33",
 		"@tanstack/react-query": "^5.90.17",
 		"@tauri-apps/plugin-autostart": "^2.5.1",
+		"@tauri-apps/plugin-notification": "~2",
 		"arktype": "^2.1.28",
 		"better-auth": "^1.4.12",
 		"class-variance-authority": "^0.7.1",
