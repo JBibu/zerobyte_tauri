@@ -33,7 +33,10 @@ async fn execute_elevated_script(
     // Run the script with elevation
     run_elevated(&script_path.to_string_lossy())?;
 
-    info!("Script {} initiated, waiting for completion...", script_name);
+    info!(
+        "Script {} initiated, waiting for completion...",
+        script_name
+    );
 
     // Wait for the script to complete (check for log file updates)
     for _ in 0..10 {
@@ -63,11 +66,16 @@ async fn execute_elevated_script(
 pub async fn get_service_status() -> Result<ServiceStatus, String> {
     #[cfg(target_os = "windows")]
     {
+        use std::os::windows::process::CommandExt;
         use std::process::Command;
+
+        // CREATE_NO_WINDOW flag to hide console window
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
 
         // Query service status using sc command
         let output = Command::new("sc")
             .args(["query", "ZerobyteService"])
+            .creation_flags(CREATE_NO_WINDOW)
             .output()
             .map_err(|e| format!("Failed to query service: {}", e))?;
 
@@ -88,6 +96,7 @@ pub async fn get_service_status() -> Result<ServiceStatus, String> {
         // Query start type
         let qc_output = Command::new("sc")
             .args(["qc", "ZerobyteService"])
+            .creation_flags(CREATE_NO_WINDOW)
             .output()
             .ok();
 

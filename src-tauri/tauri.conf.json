@@ -48,12 +48,21 @@
       "binaries/rclone",
       "binaries/shoutrrr"
     ],
+    "copyright": "Copyright © 2026 C3i Servicios Informáticos",
     "windows": {
       "digestAlgorithm": "sha256",
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "wix": {
+        "language": ["en-US", "es-ES"]
+      },
       "nsis": {
         "installerIcon": "icons/icon.ico",
         "installMode": "perMachine",
-        "displayLanguageSelector": false
+        "languages": ["en-US", "es-ES"],
+        "displayLanguageSelector": true,
+        "startMenuFolder": "C3i Backup ONE"
       }
     },
     "category": "Utility",
