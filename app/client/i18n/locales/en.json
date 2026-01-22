@@ -845,7 +845,7 @@
 				"label": "Desktop notifications",
 				"description": "Show desktop notifications for backup events and other important updates."
 			},
-			"tip": "Tip: Closing the window minimizes the app to the system tray. Use the tray icon to access the app or select "Quit" to fully exit.",
+			"tip": "Tip: Closing the window minimizes the app to the system tray. Use the tray icon to access the app or select \"Quit\" to fully exit.",
 			"toast": {
 				"autostartEnabled": "C3i Backup ONE will now start automatically on login",
 				"autostartDisabled": "Automatic startup disabled",
@@ -936,6 +936,7 @@
 			"uninstallButton": "Uninstall",
 			"openUIButton": "Open Service UI",
 			"helperRunning": "When the service is running, the desktop app connects to it automatically. Service data is stored in %PROGRAMDATA%\\C3i Backup ONE.",
+			"windowsServerOnly": "This feature is only available on Windows Server.",
 			"currentConnection": {
 				"title": "Current Connection",
 				"serviceMode": "Service Mode",

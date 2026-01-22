@@ -845,7 +845,7 @@
 				"label": "Notificaciones de escritorio",
 				"description": "Mostrar notificaciones de escritorio para eventos de copias de seguridad y otras actualizaciones importantes."
 			},
-			"tip": "Consejo: Al cerrar la ventana se minimiza la aplicación a la bandeja del sistema. Use el icono de la bandeja para acceder a la aplicación o seleccione "Salir" para cerrarla completamente.",
+			"tip": "Consejo: Al cerrar la ventana se minimiza la aplicación a la bandeja del sistema. Use el icono de la bandeja para acceder a la aplicación o seleccione \"Salir\" para cerrarla completamente.",
 			"toast": {
 				"autostartEnabled": "C3i Backup ONE ahora se iniciará automáticamente al iniciar sesión",
 				"autostartDisabled": "Inicio automático deshabilitado",
@@ -936,6 +936,7 @@
 			"uninstallButton": "Desinstalar",
 			"openUIButton": "Abrir interfaz del servicio",
 			"helperRunning": "Cuando el servicio está en ejecución, la aplicación de escritorio se conecta a él automáticamente. Los datos del servicio se almacenan en %PROGRAMDATA%\\C3i Backup ONE.",
+			"windowsServerOnly": "Esta función solo está disponible en Windows Server.",
 			"currentConnection": {
 				"title": "Conexión actual",
 				"serviceMode": "Modo servicio",

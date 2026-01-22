@@ -215,32 +215,20 @@ export function WindowsServiceSection() {
 
 				<div className="flex flex-wrap gap-2">
 					{serviceStatus === "not_installed" && (
-						<Button onClick={handleInstall} disabled={!!actionInProgress} variant="default">
-							{actionInProgress === "install" ? (
-								<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-							) : (
-								<Download className="h-4 w-4 mr-2" />
-							)}
+						<Button disabled variant="default">
+							<Download className="h-4 w-4 mr-2" />
 							{t("settings.windowsService.installButton")}
 						</Button>
 					)}
 
 					{serviceStatus === "stopped" && (
 						<>
-							<Button onClick={handleStart} disabled={!!actionInProgress} variant="default">
-								{actionInProgress === "start" ? (
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-								) : (
-									<Play className="h-4 w-4 mr-2" />
-								)}
+							<Button disabled variant="default">
+								<Play className="h-4 w-4 mr-2" />
 								{t("settings.windowsService.startButton")}
 							</Button>
-							<Button onClick={handleUninstall} disabled={!!actionInProgress} variant="outline">
-								{actionInProgress === "uninstall" ? (
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-								) : (
-									<Trash2 className="h-4 w-4 mr-2" />
-								)}
+							<Button disabled variant="outline">
+								<Trash2 className="h-4 w-4 mr-2" />
 								{t("settings.windowsService.uninstallButton")}
 							</Button>
 						</>
@@ -248,21 +236,21 @@ export function WindowsServiceSection() {
 
 					{serviceStatus === "running" && (
 						<>
-							<Button onClick={handleOpenServiceUI} variant="default">
+							<Button disabled variant="default">
 								<ExternalLink className="h-4 w-4 mr-2" />
 								{t("settings.windowsService.openUIButton")}
 							</Button>
-							<Button onClick={handleStop} disabled={!!actionInProgress} variant="outline">
-								{actionInProgress === "stop" ? (
-									<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-								) : (
-									<Square className="h-4 w-4 mr-2" />
-								)}
+							<Button disabled variant="outline">
+								<Square className="h-4 w-4 mr-2" />
 								{t("settings.windowsService.stopButton")}
 							</Button>
 						</>
 					)}
 				</div>
+
+				<p className="text-xs text-yellow-500">
+					{t("settings.windowsService.windowsServerOnly")}
+				</p>
 
 				{serviceStatus === "running" && (
 					<p className="text-xs text-muted-foreground">
