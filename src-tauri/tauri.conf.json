@@ -60,7 +60,7 @@
       "nsis": {
         "installerIcon": "icons/icon.ico",
         "installMode": "perMachine",
-        "languages": ["en-US", "es-ES"],
+        "languages": ["English", "Spanish"],
         "displayLanguageSelector": true,
         "startMenuFolder": "C3i Backup ONE"
       }
