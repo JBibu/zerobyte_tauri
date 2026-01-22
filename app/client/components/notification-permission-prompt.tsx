@@ -1,8 +1,3 @@
-/**
- * Notification Permission Prompt Component
- * Displays a prompt to users to enable notifications in Tauri desktop app
- */
-
 import { useEffect, useState } from "react";
 import { useNotifications } from "../hooks/use-notifications";
 import { Button } from "./ui/button";
@@ -19,13 +14,11 @@ export function NotificationPermissionPrompt() {
 	const [hasPrompted, setHasPrompted] = useState(false);
 
 	useEffect(() => {
-		// Check if user has previously dismissed the prompt
 		const dismissed = localStorage.getItem("notification-permission-dismissed");
 		if (dismissed === "true") {
 			setIsDismissed(true);
 		}
 
-		// Check if we've already prompted the user
 		const prompted = localStorage.getItem("notification-permission-prompted");
 		if (prompted === "true") {
 			setHasPrompted(true);
@@ -43,12 +36,6 @@ export function NotificationPermissionPrompt() {
 		setIsDismissed(true);
 	};
 
-	// Don't show if:
-	// - Not in Tauri environment
-	// - Still checking permission
-	// - Permission already granted
-	// - User dismissed the prompt
-	// - We already prompted the user
 	if (
 		!isSupported ||
 		isCheckingPermission ||
@@ -63,7 +50,6 @@ export function NotificationPermissionPrompt() {
 		<div className="fixed bottom-4 right-4 z-50 w-96 rounded-lg border border-border bg-card p-4 shadow-lg">
 			<div className="flex flex-col gap-3">
 				<div className="flex items-start gap-3">
-					<div className="flex-shrink-0 text-2xl">🔔</div>
 					<div className="flex-1">
 						<h3 className="font-semibold">Enable Desktop Notifications</h3>
 						<p className="mt-1 text-sm text-muted-foreground">
