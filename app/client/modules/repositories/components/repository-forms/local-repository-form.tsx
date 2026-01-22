@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Check, Pencil, X, AlertTriangle } from "lucide-react";
 import { REPOSITORY_BASE } from "~/client/lib/constants";
+import { isTauri } from "~/client/lib/tauri";
 import { Button } from "../../../../components/ui/button";
 import { FormItem, FormLabel, FormDescription } from "../../../../components/ui/form";
 import { DirectoryBrowser } from "../../../../components/directory-browser";
@@ -33,7 +34,7 @@ export const LocalRepositoryForm = ({ form }: Props) => {
 					<div className="flex-1 text-sm font-mono bg-muted px-3 py-2 rounded-md border">
 						{form.watch("path") || REPOSITORY_BASE}
 					</div>
-					<Button type="button" variant="outline" onClick={() => setShowPathWarning(true)} size="sm">
+					<Button type="button" variant="outline" onClick={() => isTauri() ? setShowPathBrowser(true) : setShowPathWarning(true)} size="sm">
 						<Pencil className="h-4 w-4 mr-2" />
 						Change
 					</Button>
